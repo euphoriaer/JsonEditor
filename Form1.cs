@@ -8,18 +8,24 @@ using System.Windows.Forms;
 namespace JsonShow
 {
     public partial class JsonEditors : Form
-    {  //文件名name无后缀，文件对象Fileinfo
-        private bool autoSave = false;
+    {  //Key:文件名name无后缀，Value:文件对象Fileinfo
         private Dictionary<string, FileInfo> cacheDic = new Dictionary<string, FileInfo>();
-        private string cachePath = Application.StartupPath + @"\Cache\";
         private Dictionary<string, FileInfo> jsonDic = new Dictionary<string, FileInfo>();
-        private Dictionary<string, FileInfo> searDictionary = new Dictionary<string, FileInfo>();
+        private Dictionary<string, FileInfo> searDic = new Dictionary<string, FileInfo>();
+        private bool autoSave = false;
+        private string cachePath = Application.StartupPath + @"\Cache\";
 
         //当前启动目录为缓存文件目录
         //Dictionary<string jsonName, FileInfo jsonFile> jsonDic=new
         public JsonEditors()
         {
             InitializeComponent();
+        }
+
+        private void AutoSaveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            (sender as ToolStripMenuItem).Checked = !(sender as ToolStripMenuItem).Checked;
+            autoSave = (sender as ToolStripMenuItem).Checked;
         }
 
         private void CacheJsonFile(string cacheName, string cacheContent)
@@ -77,8 +83,45 @@ namespace JsonShow
             cacheDic.Clear();
         }
 
+        private void DeleteFilesfromList_Click(object sender, EventArgs e)
+        {
+            var tempJsonObjs = ShowJsonList.SelectedItems;
+            foreach (var tempJsonObj in tempJsonObjs)
+            {
+                string tempName = tempJsonObj as string;
+                Debug.WriteLine(tempName);
+                jsonDic.Remove(tempName);
+                cacheDic.Remove(tempName);
+            }
+            RefreshListBox();
+        }
+
+        private void DeleteJsonFiles_Click(object sender, EventArgs e)
+        {
+            var tempJsonObjs = ShowJsonList.SelectedItems;
+            foreach (var jsonObj in tempJsonObjs)
+            {
+                string tempName = jsonObj as string;
+                Debug.WriteLine(tempName);
+                Debug.WriteLine(jsonDic[tempName].FullName);
+                File.Delete(jsonDic[tempName].FullName);
+                jsonDic.Remove(tempName);
+                cacheDic.Remove(tempName);
+            }
+
+            RefreshListBox();
+        }
+
         private void JsonEditorLoad(object sender, EventArgs e)
         {
+            SearchText.KeyDown += ((o, key) =>
+            {
+                if (key.KeyCode == (Keys.Enter) && SearchText.Focused)
+                {
+                    Debug.WriteLine("按下了Enter，开始搜索");
+                    SearchButton_Click(sender, e);
+                }
+            });
         }
 
         private void JsonShowList_SelectedIndexChanged(object sender, EventArgs e)
@@ -143,6 +186,14 @@ namespace JsonShow
             }
         }
 
+        private void OpenJsonFileInExplore_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo("Explorer.exe");
+            string tempJsonPath = jsonDic[ShowJsonList.SelectedItem.ToString()].FullName;
+            psi.Arguments = "/e,/select," + tempJsonPath;
+            System.Diagnostics.Process.Start(psi);
+        }
+
         /// <summary>
         /// Handles the Click event of the 打开Json文件夹ToolStripMenuItem control.
         /// </summary>
@@ -166,6 +217,18 @@ namespace JsonShow
                         jsonDic.Add(tempJsonName, jsonFile);
                     }
                 }
+            }
+        }
+
+        private void RefreshListBox()
+        {
+            //清空列表 重新添加
+            ShowContent.Text = "";
+            ShowJsonList.Items.Clear();
+            foreach (var jsonDicKey in jsonDic.Keys)
+            {
+                ShowJsonList.Sorted = true;
+                ShowJsonList.Items.Add(jsonDicKey);
             }
         }
 
@@ -210,7 +273,7 @@ namespace JsonShow
 
         private void SearchButton_Click(object sender, EventArgs e)
         {
-            searDictionary.Clear();
+            searDic.Clear();
             ShowJsonList.ClearSelected();
             string searchTarget = SearchText.Text;
             if (String.IsNullOrEmpty(searchTarget))
@@ -218,43 +281,51 @@ namespace JsonShow
                 ShowAllJson();
                 return;
             }
-            // 模糊搜索 从当前列表搜索
-            for (int i = 0; i < ShowJsonList.Items.Count; i++)
+
+            //从所有Json文件搜索
+            foreach (var jsonDicKey in jsonDic.Keys)
             {
-                var isFind = ShowJsonList.Items[i].ToString().IndexOf(searchTarget, StringComparison.CurrentCultureIgnoreCase);
+                var isFind = jsonDicKey.IndexOf(searchTarget, StringComparison.CurrentCultureIgnoreCase);
+
                 if (isFind >= 0)
                 {
-                    string itemName = ShowJsonList.Items[i].ToString();
-                    ShowJsonList.SetSelected(i, true);
-                    if (!searDictionary.ContainsKey(itemName))
+                    string itemName = jsonDicKey;
+                    if (!searDic.ContainsKey(itemName))
                     {
-                        searDictionary.Add(itemName, jsonDic[itemName]);
+                        searDic.Add(itemName, jsonDic[itemName]);
                     }
                 }
-                Debug.WriteLine("source: " + ShowJsonList.Items[i].ToString() +
-                                "   searchTatget: " + searchTarget + "  " +
-                                "FindNumber: " + isFind);
             }
+
+            #region search current Listbox
+
+            //// 模糊搜索 从当前列表搜索
+            //for (int i = 0; i < ShowJsonList.Items.Count; i++)
+            //{
+            //    var isFind = ShowJsonList.Items[i].ToString().IndexOf(searchTarget, StringComparison.CurrentCultureIgnoreCase);
+            //    if (isFind >= 0)
+            //    {
+            //        string itemName = ShowJsonList.Items[i].ToString();
+            //        ShowJsonList.SetSelected(i, true);
+            //        if (!searDic.ContainsKey(itemName))
+            //        {
+            //            searDic.Add(itemName, jsonDic[itemName]);
+            //        }
+            //    }
+            //    Debug.WriteLine("source: " + ShowJsonList.Items[i].ToString() +
+            //                    "   searchTatget: " + searchTarget + "  " +
+            //                    "FindNumber: " + isFind);
+            //}
+
+            #endregion search current Listbox
 
             //清空列表 重新添加
             ShowContent.Text = "";
             ShowJsonList.Items.Clear();
-            foreach (var SearDictionaryKey in searDictionary.Keys)
+            foreach (var SearDictionaryKey in searDic.Keys)
             {
                 ShowJsonList.Sorted = true;
                 ShowJsonList.Items.Add(SearDictionaryKey);
-            }
-        }
-
-        private void RefreshListBox()
-        {
-            //清空列表 重新添加
-            ShowContent.Text = "";
-            ShowJsonList.Items.Clear();
-            foreach (var jsonDicKey in jsonDic.Keys)
-            {
-                ShowJsonList.Sorted = true;
-                ShowJsonList.Items.Add(jsonDicKey);
             }
         }
 
@@ -287,57 +358,6 @@ namespace JsonShow
             tempJsonName = ShowJsonList.SelectedItem.ToString();
             //将富文本修改的内容存到缓存里，点击保存才存到Json中
             CacheJsonFile(tempJsonName, ShowContent.Text);
-        }
-
-        private void AutoSaveToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            (sender as ToolStripMenuItem).Checked = !(sender as ToolStripMenuItem).Checked;
-            autoSave = (sender as ToolStripMenuItem).Checked;
-        }
-
-        private void ReNameToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            string name = ShowJsonList.SelectedItem.ToString();
-        }
-
-        private void OpenJsonFileInExplore_Click(object sender, EventArgs e)
-        {
-            System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo("Explorer.exe");
-            string tempJsonPath = jsonDic[ShowJsonList.SelectedItem.ToString()].FullName;
-            psi.Arguments = "/e,/select," + tempJsonPath;
-            System.Diagnostics.Process.Start(psi);
-        }
-
-        private void DeleteJsonFiles_Click(object sender, EventArgs e)
-        {
-            var tempJsonObjs = ShowJsonList.SelectedItems;
-            foreach (var jsonObj in tempJsonObjs)
-            {
-                string tempName = jsonObj as string;
-                Debug.WriteLine(tempName);
-                Debug.WriteLine(jsonDic[tempName].FullName);
-                File.Delete(jsonDic[tempName].FullName);
-                jsonDic.Remove(tempName);
-                cacheDic.Remove(tempName);
-                
-            }
-          
-           RefreshListBox();
-
-
-        }
-
-        private void DeleteFilesfromList_Click(object sender, EventArgs e)
-        {
-            var tempJsonObjs = ShowJsonList.SelectedItems;
-            foreach (var tempJsonObj in tempJsonObjs)
-            {
-                string tempName = tempJsonObj as string;
-                Debug.WriteLine(tempName);
-                jsonDic.Remove(tempName);
-                cacheDic.Remove(tempName);
-            }
-            RefreshListBox();
         }
     }
 }
