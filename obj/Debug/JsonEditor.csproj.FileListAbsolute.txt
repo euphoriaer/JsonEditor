@@ -23,7 +23,6 @@ C:\JsonEditor\bin\Debug\JsonEditor.exe
 C:\JsonEditor\bin\Debug\JsonEditor.pdb
 C:\JsonEditor\bin\Debug\DotNetZip.dll
 C:\JsonEditor\bin\Debug\LiteDB.dll
-C:\JsonEditor\bin\Debug\LitJSON.dll
 C:\JsonEditor\bin\Debug\Microsoft.WindowsAPICodePack.dll
 C:\JsonEditor\bin\Debug\Microsoft.WindowsAPICodePack.Shell.dll
 C:\JsonEditor\bin\Debug\Newtonsoft.Json.dll

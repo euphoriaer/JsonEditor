@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using JsonShow;
 
-namespace JsonShow
-{
-    static class Program
+
+static class Program
     {
         /// <summary>
         /// 应用程序的主入口点。
@@ -19,4 +19,4 @@ namespace JsonShow
             Application.Run(new JsonEditors());
         }
     }
-}
+
