@@ -29,79 +29,13 @@ namespace JsonShow
             mainWorksheet = MainReoGrid.CurrentWorksheet;
         }
 
-        private void SetFont()
-        {
-            MainReoGrid.CurrentWorksheet.SetRangeStyles("A1:Z100", new WorksheetRangeStyle
-            {
-                Flag = PlainStyleFlag.HorizontalAlign,
-                HAlign = ReoGridHorAlign.Center,
-            });
-        }
-
-        private void AutoCellSize(Worksheet worksheet)
-        {
-            if (autoCellSize)
-            {
-                for (int i = 0; i < worksheet.ColumnCount; i++)
-                {
-                    worksheet.AutoFitColumnWidth(i, false);
-                }
-            }
-        }
-
         private void AutoSaveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             (sender as ToolStripMenuItem).Checked = !(sender as ToolStripMenuItem).Checked;
             autoSave = (sender as ToolStripMenuItem).Checked;
         }
 
-        private void CacheJsonFile(string cacheName, string cacheContent)
-        {
-            //todo 缓存优化，
-            //1.只存修改的部分text
-            //2.每次打开文件先从缓存读(List列表内容）
-            //3.缓存缓存列表，启动读取
-
-            DirectoryInfo cacheDir = Directory.CreateDirectory(cachePath);
-            string tempCacheJsonPath = cacheDir.FullName + cacheName;
-            File.WriteAllText(tempCacheJsonPath, cacheContent);
-            if (!cacheDic.ContainsKey(cacheName))//不存在就加入到缓存列表
-            {
-                FileInfo cacheFile = new FileInfo(tempCacheJsonPath);
-                cacheDic.Add(cacheName, cacheFile);
-            }
-
-            try
-            {
-                //加到缓存后，表格重新读取
-                mainWorksheet = JsonTools.DeSerializeToForm(cacheDic[cacheName], MainReoGrid);
-                //设置文本风格
-                SetFont();
-                //设置自适应宽高
-                AutoCellSize(mainWorksheet);
-                //添加RichContent同步
-                SheetChangedEvent(mainWorksheet);
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show("Json文件结构被破坏,表格无法显示");
-                Console.WriteLine(e);
-            }
-        }
-
-        private bool CheckValidity()
-        {
-            if (string.IsNullOrEmpty(RichContent.Text))
-            {
-                return true;
-            }
-            if (ShowJsonList.SelectedItem == null)
-            {
-                return true;
-            }
-
-            return false;
-        }
+     
 
         private void ClearCache_ItemClicked(object sender, EventArgs e)
         {
@@ -192,18 +126,7 @@ namespace JsonShow
             RichContent.Text = File.ReadAllText(tempJsonFile.FullName);
         }
 
-        private void SheetChangedEvent(Worksheet destinationWorksheet)
-        {
-            destinationWorksheet.CellDataChanged += ((send, args) =>
-            {
-                string selectName = ShowJsonList.SelectedItem.ToString();
-                string json = JsonTools.SerializeToString(MainReoGrid.CurrentWorksheet);
-                Debug.WriteLine("json：" + json);
-                RichContent.Text = json;
-                //如果勾选了自动保存，则同时写入文件
-                AutoSave();
-            });
-        }
+        
 
         /// <summary>
         /// 解析Json字符串
@@ -270,17 +193,7 @@ namespace JsonShow
             }
         }
 
-        private void RefreshListBox()
-        {
-            //清空列表 重新添加
-            RichContent.Text = "";
-            ShowJsonList.Items.Clear();
-            foreach (var jsonDicKey in jsonDic.Keys)
-            {
-                ShowJsonList.Sorted = true;
-                ShowJsonList.Items.Add(jsonDicKey);
-            }
-        }
+       
 
         private void SaveAllJsons(object sender, EventArgs e)
         {
@@ -346,7 +259,6 @@ namespace JsonShow
                     }
                 }
             }
-
             #region search current Listbox
 
             //// 模糊搜索 从当前列表搜索
@@ -368,7 +280,6 @@ namespace JsonShow
             //}
 
             #endregion search current Listbox
-
             //清空列表 重新添加
             RichContent.Text = "";
             ShowJsonList.Items.Clear();
@@ -379,15 +290,7 @@ namespace JsonShow
             }
         }
 
-        private void ShowAllJson()
-        {
-            RichContent.Text = "";
-            ShowJsonList.Items.Clear();
-            foreach (var jsonDicValue in jsonDic.Keys)
-            {
-                ShowJsonList.Items.Add(jsonDicValue);
-            }
-        }
+      
 
         private void RichContent_TextChanged(object sender, EventArgs e)
         {
@@ -398,29 +301,6 @@ namespace JsonShow
             AutoSave();
             //设置自适应宽高
             AutoCellSize(mainWorksheet);
-        }
-
-        private void AutoSave()
-        {
-            if (CheckValidity())
-            {
-                return;
-            }
-
-            string tempJsonName;
-            if (autoSave)
-            {
-                //自动保存
-                tempJsonName = ShowJsonList.SelectedItem.ToString(); //获取选择的json文件
-                //将修改的内容写进Json文件中。
-                File.WriteAllText(jsonDic[tempJsonName].FullName, RichContent.Text);
-                //File.WriteAllText(cacheDic[tempJsonName].FullName,RichContent.Text);
-                //return;
-            }
-
-            tempJsonName = ShowJsonList.SelectedItem.ToString();
-            //将富文本修改的内容存到缓存里，点击保存才存到Json中
-            CacheJsonFile(tempJsonName, RichContent.Text);
         }
 
         private void SerializeJson_Click(object sender, EventArgs e)
@@ -446,6 +326,128 @@ namespace JsonShow
         {
             (sender as ToolStripMenuItem).Checked = !(sender as ToolStripMenuItem).Checked;
             autoCellSize = (sender as ToolStripMenuItem).Checked;
+        }
+    }
+
+    public partial class JsonEditors
+    {
+        private void SetFont()
+        {
+            MainReoGrid.CurrentWorksheet.SetRangeStyles("A1:Z100", new WorksheetRangeStyle
+            {
+                Flag = PlainStyleFlag.HorizontalAlign,
+                HAlign = ReoGridHorAlign.Center,
+            });
+        }
+        private void AutoSave()
+        {
+            if (CheckValidity())
+            {
+                return;
+            }
+
+            string tempJsonName;
+            if (autoSave)
+            {
+                //自动保存
+                tempJsonName = ShowJsonList.SelectedItem.ToString(); //获取选择的json文件
+                //将修改的内容写进Json文件中。
+                File.WriteAllText(jsonDic[tempJsonName].FullName, RichContent.Text);
+                //File.WriteAllText(cacheDic[tempJsonName].FullName,RichContent.Text);
+                //return;
+            }
+
+            tempJsonName = ShowJsonList.SelectedItem.ToString();
+            //将富文本修改的内容存到缓存里，点击保存才存到Json中
+            CacheJsonFile(tempJsonName, RichContent.Text);
+        }
+        private bool CheckValidity()
+        {
+            if (string.IsNullOrEmpty(RichContent.Text))
+            {
+                return true;
+            }
+            if (ShowJsonList.SelectedItem == null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+        private void AutoCellSize(Worksheet worksheet)
+        {
+            if (autoCellSize)
+            {
+                for (int i = 0; i < worksheet.ColumnCount; i++)
+                {
+                    worksheet.AutoFitColumnWidth(i, false);
+                }
+            }
+        }
+        private void CacheJsonFile(string cacheName, string cacheContent)
+        {
+            //todo 缓存优化，
+            //1.只存修改的部分text
+            //2.每次打开文件先从缓存读(List列表内容）
+            //3.缓存缓存列表，启动读取
+
+            DirectoryInfo cacheDir = Directory.CreateDirectory(cachePath);
+            string tempCacheJsonPath = cacheDir.FullName + cacheName;
+            File.WriteAllText(tempCacheJsonPath, cacheContent);
+            if (!cacheDic.ContainsKey(cacheName))//不存在就加入到缓存列表
+            {
+                FileInfo cacheFile = new FileInfo(tempCacheJsonPath);
+                cacheDic.Add(cacheName, cacheFile);
+            }
+
+            try
+            {
+                //加到缓存后，表格重新读取
+                mainWorksheet = JsonTools.DeSerializeToForm(cacheDic[cacheName], MainReoGrid);
+                //设置文本风格
+                SetFont();
+                //设置自适应宽高
+                AutoCellSize(mainWorksheet);
+                //添加RichContent同步
+                SheetChangedEvent(mainWorksheet);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Json文件结构被破坏,表格无法显示");
+                Console.WriteLine(e);
+            }
+        }
+        private void ShowAllJson()
+        {
+            RichContent.Text = "";
+            ShowJsonList.Items.Clear();
+            foreach (var jsonDicValue in jsonDic.Keys)
+            {
+                ShowJsonList.Items.Add(jsonDicValue);
+            }
+        }
+        private void RefreshListBox()
+        {
+            //清空列表 重新添加
+            RichContent.Text = "";
+            ShowJsonList.Items.Clear();
+            foreach (var jsonDicKey in jsonDic.Keys)
+            {
+                ShowJsonList.Sorted = true;
+                ShowJsonList.Items.Add(jsonDicKey);
+            }
+        }
+        private void SheetChangedEvent(Worksheet destinationWorksheet)
+        {
+            destinationWorksheet.CellDataChanged += ((send, args) =>
+            {
+                string selectName = ShowJsonList.SelectedItem.ToString();
+                string json = JsonTools.SerializeToString(MainReoGrid.CurrentWorksheet);
+                Debug.WriteLine("json：" + json);
+                RichContent.Text = json;
+                //如果勾选了自动保存，则同时写入文件
+                AutoSave();
+            });
         }
     }
 }

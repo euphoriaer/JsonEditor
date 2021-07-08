@@ -1,0 +1,14 @@
+{
+    "ID": "123888",
+    "Name": "普",
+    "Description": "狂战普通攻击判定",
+    "AttackType": "1",
+    "IsForce": "False",
+    "CD": "0",
+    "CostType": "0",
+    "CostValue": "0",
+    "InitOrientation": "0",
+    "StateCondition": "3",
+    "CutsceneName": "",
+    "CanMove": "False"
+}

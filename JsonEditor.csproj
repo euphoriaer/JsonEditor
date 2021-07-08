@@ -106,29 +106,29 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DialogTools.cs" />
-    <Compile Include="JsonEditor.cs">
+    <Compile Include="Scripts\Tools\DialogTools.cs" />
+    <Compile Include="Scripts\Form\JsonEditor.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="JsonEditor.Designer.cs">
+    <Compile Include="Scripts\Form\JsonEditor.Designer.cs">
       <DependentUpon>JsonEditor.cs</DependentUpon>
     </Compile>
-    <Compile Include="JsonTools.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Scripts\Tools\JsonTools.cs" />
+    <Compile Include="Scripts\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SerializeJsonForm.cs">
+    <Compile Include="Scripts\Form\SerializeJsonForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SerializeJsonForm.Designer.cs">
+    <Compile Include="Scripts\Form\SerializeJsonForm.Designer.cs">
       <DependentUpon>SerializeJsonForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="SerializeName.cs">
+    <Compile Include="Scripts\Form\SerializeName.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SerializeName.Designer.cs">
+    <Compile Include="Scripts\Form\SerializeName.Designer.cs">
       <DependentUpon>SerializeName.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="JsonEditor.resx">
+    <EmbeddedResource Include="Scripts\Form\JsonEditor.resx">
       <DependentUpon>JsonEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -140,10 +140,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="SerializeJsonForm.resx">
+    <EmbeddedResource Include="Scripts\Form\SerializeJsonForm.resx">
       <DependentUpon>SerializeJsonForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="SerializeName.resx">
+    <EmbeddedResource Include="Scripts\Form\SerializeName.resx">
       <DependentUpon>SerializeName.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="JsonShow_TemporaryKey.pfx" />
@@ -182,5 +182,6 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
