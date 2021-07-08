@@ -26,6 +26,7 @@ namespace JsonShow
             //设置文本风格
             SetFont();
             AutoFormHook.Checked = true;
+            mainWorksheet = MainReoGrid.CurrentWorksheet;
         }
 
         private void SetFont()
@@ -73,7 +74,7 @@ namespace JsonShow
             try
             {
                 //加到缓存后，表格重新读取
-                JsonTools.DeSerializeToForm(cacheDic[cacheName], MainReoGrid);
+                mainWorksheet = JsonTools.DeSerializeToForm(cacheDic[cacheName], MainReoGrid);
                 //设置文本风格
                 SetFont();
                 //设置自适应宽高
@@ -180,7 +181,7 @@ namespace JsonShow
             {
                 tempJsonFile = jsonDic[tempListBox.SelectedItem.ToString()];
             }
-            JsonTools.DeSerializeToForm(tempJsonFile, MainReoGrid);
+            mainWorksheet = JsonTools.DeSerializeToForm(tempJsonFile, MainReoGrid);
             //设置文本风格
             SetFont();
             //设置自适应宽高
@@ -395,6 +396,8 @@ namespace JsonShow
                 return;
             }
             AutoSave();
+            //设置自适应宽高
+            AutoCellSize(mainWorksheet);
         }
 
         private void AutoSave()

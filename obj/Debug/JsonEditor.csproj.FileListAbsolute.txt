@@ -34,7 +34,6 @@ C:\JsonEditor\bin\Debug\Microsoft.WindowsAPICodePack.xml
 C:\JsonEditor\bin\Debug\Microsoft.WindowsAPICodePack.Shell.xml
 C:\JsonEditor\bin\Debug\Newtonsoft.Json.xml
 C:\JsonEditor\bin\Debug\unvell.ReoGrid.xml
-C:\JsonEditor\obj\Debug\JsonEditor.csproj.AssemblyReference.cache
 C:\JsonEditor\obj\Debug\JsonShow.JsonEditors.resources
 C:\JsonEditor\obj\Debug\JsonShow.Properties.Resources.resources
 C:\JsonEditor\obj\Debug\JsonShow.SerializeJsonForm.resources
@@ -44,3 +43,4 @@ C:\JsonEditor\obj\Debug\JsonEditor.csproj.CoreCompileInputs.cache
 C:\JsonEditor\obj\Debug\JsonEditor.csproj.CopyComplete
 C:\JsonEditor\obj\Debug\JsonEditor.exe
 C:\JsonEditor\obj\Debug\JsonEditor.pdb
+C:\JsonEditor\obj\Debug\JsonEditor.csproj.AssemblyReference.cache
