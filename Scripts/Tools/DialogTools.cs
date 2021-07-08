@@ -4,7 +4,7 @@ using System.Windows.Forms;
 
 public static class DialogTools
 {
-    public static string[] OpenFiles(out bool isOk,string filter)
+    public static string[] OpenFiles(out bool isOk, string filter)
     {
         List<string> fullNames = new List<string>();
         OpenFileDialog fileDialog = new OpenFileDialog();

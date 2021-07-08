@@ -1,7 +1,7 @@
 ﻿
 namespace JsonShow
 {
-    partial class JsonEditors
+    partial class JsonEditor
     {
         /// <summary>
         /// 必需的设计器变量。
@@ -30,7 +30,7 @@ namespace JsonShow
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(JsonEditors));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(JsonEditor));
             this.ShowJsonList = new System.Windows.Forms.ListBox();
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.DeleteJsonFiles = new System.Windows.Forms.ToolStripMenuItem();
@@ -72,7 +72,7 @@ namespace JsonShow
             // 
             // ShowJsonList
             // 
-            this.ShowJsonList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.ShowJsonList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
             | System.Windows.Forms.AnchorStyles.Left)));
             this.ShowJsonList.ContextMenuStrip = this.contextMenuStrip;
             this.ShowJsonList.Font = new System.Drawing.Font("黑体", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
@@ -118,7 +118,7 @@ namespace JsonShow
             // 
             // RichContent
             // 
-            this.RichContent.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.RichContent.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.RichContent.Font = new System.Drawing.Font("黑体", 14.25F);
             this.RichContent.Location = new System.Drawing.Point(413, 80);
@@ -186,7 +186,7 @@ namespace JsonShow
             // OpenJsonFolder
             // 
             this.OpenJsonFolder.Name = "OpenJsonFolder";
-            this.OpenJsonFolder.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            this.OpenJsonFolder.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift)
             | System.Windows.Forms.Keys.O)));
             this.OpenJsonFolder.Size = new System.Drawing.Size(226, 22);
             this.OpenJsonFolder.Text = "打开文件夹";
@@ -203,7 +203,7 @@ namespace JsonShow
             // SaveAllJson
             // 
             this.SaveAllJson.Name = "SaveAllJson";
-            this.SaveAllJson.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            this.SaveAllJson.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift)
             | System.Windows.Forms.Keys.S)));
             this.SaveAllJson.Size = new System.Drawing.Size(226, 22);
             this.SaveAllJson.Text = "保存所有修改";
@@ -340,8 +340,8 @@ namespace JsonShow
             // 
             // MainReoGrid
             // 
-            this.MainReoGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.MainReoGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.MainReoGrid.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.MainReoGrid.ColumnHeaderContextMenuStrip = null;
@@ -362,8 +362,8 @@ namespace JsonShow
             // 
             // label1
             // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(411, 395);
@@ -409,7 +409,7 @@ namespace JsonShow
         }
 
         #endregion
-        private System.Windows.Forms.ListBox ShowJsonList;
+        public System.Windows.Forms.ListBox ShowJsonList;
         private System.Windows.Forms.RichTextBox RichContent;
         private System.Windows.Forms.TextBox SearchText;
         private System.Windows.Forms.Button SearchButton;

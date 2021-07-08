@@ -1,22 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using JsonShow;
+using System;
 using System.Windows.Forms;
-using JsonShow;
 
-
-static class Program
+internal static class Program
+{
+    /// <summary>
+    /// 应用程序的主入口点。
+    /// </summary>
+    [STAThread]
+    private static void Main()
     {
-        /// <summary>
-        /// 应用程序的主入口点。
-        /// </summary>
-        [STAThread]
-        static void Main()
-        {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new JsonEditors());
-        }
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+        Application.Run(new JsonEditor());
     }
-
+}

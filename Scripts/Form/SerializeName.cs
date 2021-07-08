@@ -11,6 +11,7 @@ namespace JsonShow
         public DialogContent()
         {
             InitializeComponent();
+
             this.StartPosition = FormStartPosition.CenterParent;
         }
 

@@ -1,62 +1,65 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Windows.Forms;
 using unvell.ReoGrid;
 
 namespace JsonShow
 {
     public static class JsonTools
     {
-        public static JObject SerializeToJobject(Dictionary<string, string> source)
+        /// <summary>
+        /// De serialized to dictionary.
+        /// </summary>
+        /// <param name="json">The json string.</param>
+        /// <returns></returns>
+        public static Dictionary<string, string> DeSerializeToDictionary(string json)
         {
-            JObject target = new JObject();
-
-            foreach (var DicEntity in source)
+            Dictionary<string, string> jsonDic = new Dictionary<string, string>();
+            try
             {
-                target.Add(DicEntity.Key, DicEntity.Value);
+                if (!string.IsNullOrEmpty(json))
+                {
+                    JObject jo = (JObject)JsonConvert.DeserializeObject(json);
+                    foreach (var item in jo)
+                    {
+                        jsonDic.Add(item.Key, item.Value.ToString());
+                    }
+                }
+                return jsonDic;
             }
-            return target;
+            catch (Exception e)
+            {
+            }
+            finally
+            {
+                MessageBox.Show("无法解析为表格");
+            }
+            return jsonDic;
         }
 
-        public static string SerializeToString(Worksheet source)
+        public static Worksheet DeSerializeToForm(FileInfo jsonFileInfo, ReoGridControl MainReoGrid)
         {
-            //获取JsonKey
-            List<string> titleName = new List<string>();
-            Dictionary<string, string> conbineValue = new Dictionary<string, string>();
-            for (int j = 0; j < source.ColumnCount; j++)
-            {
-                var pos = new CellPosition(0, j);
+            string content = File.ReadAllText(jsonFileInfo.FullName);
+            var jsonDic = JsonTools.DeSerializeToDictionary(content);
 
-                if (source[pos] != null)
-                {
-                    titleName.Add(source[pos].ToString());
-                }
+            MainReoGrid.CurrentWorksheet = MainReoGrid.CreateWorksheet();
+            Worksheet worksheet = MainReoGrid.CurrentWorksheet;
+            int tempColumn = 0;
+            foreach (var dictionaryEntry in jsonDic)
+            {
+                var rowOne = new CellPosition(0, tempColumn); //第一行
+                var rowTwo = new CellPosition(1, tempColumn); //第二行
+                worksheet[rowOne] = dictionaryEntry.Key as string;
+                string m = dictionaryEntry.Value;
+                worksheet[rowTwo] = m;
+                tempColumn++;
             }
 
-            //for (int i = 1; i < destinationWorksheet.RowCount; i++)
-            //{
-            // 第二行，将与JsonKey 组合为Dic文件, 同时序列化，存储
-            for (int j = 0; j < titleName.Count; j++)
-            {
-                var pos = new CellPosition(1, j);//每一个数据
-
-                if (source[pos] != null)
-                {
-                    conbineValue.Add(titleName[j], source[pos].ToString());
-                }
-            }
-
-            //处理Dic文件为Jobject，
-            JObject strJObject = JsonTools.SerializeToJobject(conbineValue);
-            //序列化
-            string jstr = JsonConvert.SerializeObject(strJObject);
-            //格式化
-            string fJsonString = Format(jstr);
-            Debug.WriteLine(fJsonString);
-            conbineValue.Clear();
-            return fJsonString;
+            return worksheet;
         }
 
         /// <summary>
@@ -138,7 +141,7 @@ namespace JsonShow
                 string fJsonString = JsonTools.Format(jstr);
                 string path = savePath[pathIndex];
                 File.WriteAllText(path, fJsonString);//存到文件中，如果不存在会自动创建
-                Debug.WriteLine("保存文件路径为："+path);
+                Debug.WriteLine("保存文件路径为：" + path);
                 FileInfo jsonFile = new FileInfo(path);
                 fileInfos.Add(jsonFile);
                 conbineValue.Clear();
@@ -147,44 +150,54 @@ namespace JsonShow
             return fileInfos.ToArray();
         }
 
-        public static Worksheet DeSerializeToForm(FileInfo jsonFileInfo, ReoGridControl MainReoGrid)
+        public static JObject SerializeToJobject(Dictionary<string, string> source)
         {
-            string content = File.ReadAllText(jsonFileInfo.FullName);
-            var jsonDic = JsonTools.DeSerializeToDictionary(content);
+            JObject target = new JObject();
 
-            MainReoGrid.CurrentWorksheet = MainReoGrid.CreateWorksheet();
-            Worksheet worksheet = MainReoGrid.CurrentWorksheet;
-            int tempColumn = 0;
-            foreach (var dictionaryEntry in jsonDic)
+            foreach (var DicEntity in source)
             {
-                var rowOne = new CellPosition(0, tempColumn); //第一行
-                var rowTwo = new CellPosition(1, tempColumn); //第二行
-                worksheet[rowOne] = dictionaryEntry.Key as string;
-                string m = dictionaryEntry.Value;
-                worksheet[rowTwo] = m;
-                tempColumn++;
+                target.Add(DicEntity.Key, DicEntity.Value);
             }
-
-            return worksheet;
+            return target;
         }
 
-        /// <summary>
-        /// De serialized to dictionary.
-        /// </summary>
-        /// <param name="json">The json string.</param>
-        /// <returns></returns>
-        public static Dictionary<string, string> DeSerializeToDictionary(string json)
+        public static string SerializeToString(Worksheet source)
         {
-            Dictionary<string, string> jsonDic = new Dictionary<string, string>();
-            if (!string.IsNullOrEmpty(json))
+            //获取JsonKey
+            List<string> titleName = new List<string>();
+            Dictionary<string, string> conbineValue = new Dictionary<string, string>();
+            for (int j = 0; j < source.ColumnCount; j++)
             {
-                JObject jo = (JObject)JsonConvert.DeserializeObject(json);
-                foreach (var item in jo)
+                var pos = new CellPosition(0, j);
+
+                if (source[pos] != null)
                 {
-                    jsonDic.Add(item.Key, item.Value.ToString());
+                    titleName.Add(source[pos].ToString());
                 }
             }
-            return jsonDic;
+
+            //for (int i = 1; i < destinationWorksheet.RowCount; i++)
+            //{
+            // 第二行，将与JsonKey 组合为Dic文件, 同时序列化，存储
+            for (int j = 0; j < titleName.Count; j++)
+            {
+                var pos = new CellPosition(1, j);//每一个数据
+
+                if (source[pos] != null)
+                {
+                    conbineValue.Add(titleName[j], source[pos].ToString());
+                }
+            }
+
+            //处理Dic文件为Jobject，
+            JObject strJObject = JsonTools.SerializeToJobject(conbineValue);
+            //序列化
+            string jstr = JsonConvert.SerializeObject(strJObject);
+            //格式化
+            string fJsonString = Format(jstr);
+            Debug.WriteLine(fJsonString);
+            conbineValue.Clear();
+            return fJsonString;
         }
 
         //public static
