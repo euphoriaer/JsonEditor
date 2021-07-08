@@ -50,7 +50,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>bitbug_favicon.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\JsonEditor.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>5B24E5A861295293B712070589D815B779478698</ManifestCertificateThumbprint>
@@ -140,6 +140,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <EmbeddedResource Include="Scripts\Form\SerializeJsonForm.resx">
       <DependentUpon>SerializeJsonForm.cs</DependentUpon>
@@ -147,8 +148,7 @@
     <EmbeddedResource Include="Scripts\Form\SerializeName.resx">
       <DependentUpon>SerializeName.cs</DependentUpon>
     </EmbeddedResource>
-    <None Include="JsonShow_TemporaryKey.pfx" />
-    <None Include="packages.config" />
+    <None Include="Config\packages.config" />
     <None Include="Properties\app.manifest" />
     <None Include="Properties\DataSources\JsonEditors.datasource" />
     <None Include="Properties\DataSources\JsonShow.Properties.Resources.datasource" />
@@ -166,10 +166,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="Config\App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="bitbug_favicon.ico" />
+    <Content Include="Resources\JsonEditor.ico" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
