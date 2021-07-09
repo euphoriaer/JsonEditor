@@ -129,6 +129,7 @@
     <Compile Include="Scripts\Form\SerializeName.Designer.cs">
       <DependentUpon>SerializeName.cs</DependentUpon>
     </Compile>
+    <Compile Include="Scripts\Tools\LiteDBTools.cs" />
     <EmbeddedResource Include="Scripts\Form\JsonEditor.resx">
       <DependentUpon>JsonEditor.cs</DependentUpon>
     </EmbeddedResource>
@@ -149,6 +150,7 @@
       <DependentUpon>SerializeName.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Config\packages.config" />
+    <None Include="packages.config" />
     <None Include="Properties\app.manifest" />
     <None Include="Properties\DataSources\JsonEditors.datasource" />
     <None Include="Properties\DataSources\JsonShow.Properties.Resources.datasource" />

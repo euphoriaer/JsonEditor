@@ -55,6 +55,7 @@ namespace JsonShow
             this.设置ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.自适应宽高ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SerializeJson = new System.Windows.Forms.ToolStripMenuItem();
+            this.构建Josn关系ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.进度 = new System.Windows.Forms.ToolStripStatusLabel();
             this.EditorProgressBar = new System.Windows.Forms.ToolStripProgressBar();
@@ -64,10 +65,12 @@ namespace JsonShow
             this.label2 = new System.Windows.Forms.Label();
             this.MainReoGrid = new unvell.ReoGrid.ReoGridControl();
             this.label1 = new System.Windows.Forms.Label();
-            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.FormCell = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.查看详细内容ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
+            this.FormCell.SuspendLayout();
             this.SuspendLayout();
             // 
             // ShowJsonList
@@ -154,7 +157,8 @@ namespace JsonShow
             this.文件ToolStripMenuItem,
             this.编辑ToolStripMenuItem,
             this.选项ToolStripMenuItem,
-            this.SerializeJson});
+            this.SerializeJson,
+            this.构建Josn关系ToolStripMenuItem});
             this.menuStrip1.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.Flow;
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -283,6 +287,13 @@ namespace JsonShow
             this.SerializeJson.Text = "Json生成器";
             this.SerializeJson.Click += new System.EventHandler(this.SerializeJson_Click);
             // 
+            // 构建Josn关系ToolStripMenuItem
+            // 
+            this.构建Josn关系ToolStripMenuItem.Name = "构建Josn关系ToolStripMenuItem";
+            this.构建Josn关系ToolStripMenuItem.Size = new System.Drawing.Size(94, 21);
+            this.构建Josn关系ToolStripMenuItem.Text = "构建Josn关系";
+            this.构建Josn关系ToolStripMenuItem.Click += new System.EventHandler(this.构建Josn关系ToolStripMenuItem_Click);
+            // 
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -345,6 +356,7 @@ namespace JsonShow
             | System.Windows.Forms.AnchorStyles.Right)));
             this.MainReoGrid.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.MainReoGrid.ColumnHeaderContextMenuStrip = null;
+            this.MainReoGrid.ContextMenuStrip = this.FormCell;
             this.MainReoGrid.LeadHeaderContextMenuStrip = null;
             this.MainReoGrid.Location = new System.Drawing.Point(413, 410);
             this.MainReoGrid.Name = "MainReoGrid";
@@ -373,10 +385,19 @@ namespace JsonShow
             this.label1.Text = "Dserialized Form";
             this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
-            // contextMenuStrip1
+            // FormCell
             // 
-            this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(61, 4);
+            this.FormCell.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.查看详细内容ToolStripMenuItem});
+            this.FormCell.Name = "FormCell";
+            this.FormCell.Size = new System.Drawing.Size(181, 48);
+            // 
+            // 查看详细内容ToolStripMenuItem
+            // 
+            this.查看详细内容ToolStripMenuItem.Name = "查看详细内容ToolStripMenuItem";
+            this.查看详细内容ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.查看详细内容ToolStripMenuItem.Text = "查看详细内容";
+            this.查看详细内容ToolStripMenuItem.Click += new System.EventHandler(this.查看详细内容ToolStripMenuItem_Click);
             // 
             // JsonEditor
             // 
@@ -403,6 +424,7 @@ namespace JsonShow
             this.menuStrip1.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
+            this.FormCell.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -440,9 +462,11 @@ namespace JsonShow
         private System.Windows.Forms.ToolStripMenuItem SerializeJson;
         private unvell.ReoGrid.ReoGridControl MainReoGrid;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem AutoFormHook;
         private System.Windows.Forms.ToolStripMenuItem 自适应宽高ToolStripMenuItem;
+        private System.Windows.Forms.ContextMenuStrip FormCell;
+        private System.Windows.Forms.ToolStripMenuItem 查看详细内容ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 构建Josn关系ToolStripMenuItem;
     }
 }
 

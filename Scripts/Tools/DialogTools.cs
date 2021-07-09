@@ -29,7 +29,7 @@ public static class DialogTools
         return fullNames.ToArray();
     }
 
-    public static string SaveFile()
+    public static string SaveFile(out bool isOk)
     {
         //string localFilePath, fileNameExt, newFileName, FilePath;
         SaveFileDialog sfd = new SaveFileDialog();
@@ -50,7 +50,12 @@ public static class DialogTools
         if (sfd.ShowDialog() == DialogResult.OK)
         {
             string localFilePath = sfd.FileName.ToString(); //获得文件路径
+            isOk = true;
             return localFilePath;
+        }
+        else
+        {
+            isOk = false;
         }
 
         return null;

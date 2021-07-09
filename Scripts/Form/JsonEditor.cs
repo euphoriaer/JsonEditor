@@ -1,4 +1,6 @@
-﻿using System;
+﻿using JsonShow.Scripts.Tools;
+using LiteDB;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -29,6 +31,7 @@ namespace JsonShow
         public JsonEditor()
         {
             InitializeComponent();
+
             //设置文本风格
             SetFont();
             AutoFormHook.Checked = true;
@@ -283,10 +286,13 @@ namespace JsonShow
                 return;
             }
 
-            string itemName = SearchAllList(searchTarget);
-            if (!searDic.ContainsKey(itemName))
+            string[] itemNames = SearchAllList(searchTarget);
+            foreach (var itemName in itemNames)
             {
-                searDic.Add(itemName, jsonDic[itemName]);
+                if (!searDic.ContainsKey(itemName))
+                {
+                    searDic.Add(itemName, jsonDic[itemName]);
+                }
             }
 
             //清空列表 重新添加
@@ -342,11 +348,6 @@ namespace JsonShow
 
         private void CacheJsonFile(string cacheName, string cacheContent)
         {
-            //todo 缓存优化，
-            //1.只存修改的部分text
-            //2.每次打开文件先从缓存读(List列表内容）
-            //3.缓存缓存列表，启动读取
-
             DirectoryInfo cacheDir = Directory.CreateDirectory(cachePath);
             string tempCacheJsonPath = cacheDir.FullName + cacheName;
             File.WriteAllText(tempCacheJsonPath, cacheContent);
@@ -401,38 +402,39 @@ namespace JsonShow
             }
         }
 
-        private string SearchAllList(string searchTarget)
+        private string[] SearchAllList(string searchTarget)
         {
             //从所有Json文件搜索
+            List<string> searchList = new List<string>();
             foreach (var jsonDicKey in jsonDic.Keys)
             {
                 var isFind = jsonDicKey.IndexOf(searchTarget, StringComparison.CurrentCultureIgnoreCase);
 
                 if (isFind >= 0)
                 {
-                    return jsonDicKey;
+                    searchList.Add(jsonDicKey);
                 }
             }
-
-            return null;
+            return searchList.ToArray();
         }
 
-        private string SearchCurrentList(string searchTarget)
+        private string[] SearchCurrentList(string searchTarget)
         {
             // 模糊搜索 从当前列表搜索
+            List<string> searchList = new List<string>();
             for (int i = 0; i < ShowJsonList.Items.Count; i++)
             {
                 var isFind = ShowJsonList.Items[i].ToString().IndexOf(searchTarget, StringComparison.CurrentCultureIgnoreCase);
                 if (isFind >= 0)
                 {
-                    return ShowJsonList.Items[i].ToString();
+                    searchList.Add(ShowJsonList.Items[i].ToString());
                 }
                 Debug.WriteLine("source: " + ShowJsonList.Items[i].ToString() +
                                 "   searchTatget: " + searchTarget + "  " +
                                 "FindNumber: " + isFind);
             }
 
-            return null;
+            return searchList.ToArray();
         }
 
         private void SetFont()
@@ -453,6 +455,7 @@ namespace JsonShow
                 Debug.WriteLine("json：" + json);
                 RichContent.Text = json;
                 //如果勾选了自动保存，则同时写入文件
+                //todo 修改写入数据库
                 AutoSave();
             });
         }
@@ -468,5 +471,32 @@ namespace JsonShow
         }
 
         #endregion Function
+
+        private void 查看详细内容ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //mainWorksheet.SelectionMode = WorksheetSelectionMode.Cell;
+            var range = mainWorksheet.SelectionRange;
+            CellPosition cellPosition = mainWorksheet.FocusPos;
+            Cell cell = mainWorksheet.Cells[cellPosition];
+            string[] cellCol = mainWorksheet.Cells[0, cellPosition.Col].DisplayText.Split('_');
+            string id = cell.DisplayText;
+            Debug.WriteLine("获取选择的单元格列(集合)：" + cellCol);
+            Debug.WriteLine("获取选择的单元格内容(id)：" + id);
+            //从数据库查找指定数据
+            string dbName = "json.db";
+            //var data= LiteDBTools.SearchByID(id, cellCol[0], dbName);
+            //todo Name能否修改，指定为集合第二列为Key（存的时候使用的集合第二列）
+            string cmd = string.Format("$.Name = '{0}'", id);
+            BsonDocument data = LiteDBTools.SearchFirst(cmd, cellCol[0], dbName);
+
+            string json = LiteDB.JsonSerializer.Serialize(data);
+            Debug.WriteLine(json);
+            //todo 在新的sheet中展示为表格
+        }
+
+        private void 构建Josn关系ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // todo 根据当前列表，构建指定规则的Json关系
+        }
     }
 }

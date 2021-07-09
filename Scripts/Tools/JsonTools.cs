@@ -33,21 +33,19 @@ namespace JsonShow
             }
             catch (Exception e)
             {
-            }
-            finally
-            {
                 MessageBox.Show("无法解析为表格");
             }
+
             return jsonDic;
         }
 
-        public static Worksheet DeSerializeToForm(FileInfo jsonFileInfo, ReoGridControl MainReoGrid)
+        public static Worksheet DeSerializeToForm(FileInfo json, ReoGridControl showGrid)
         {
-            string content = File.ReadAllText(jsonFileInfo.FullName);
+            string content = File.ReadAllText(json.FullName);
             var jsonDic = JsonTools.DeSerializeToDictionary(content);
 
-            MainReoGrid.CurrentWorksheet = MainReoGrid.CreateWorksheet();
-            Worksheet worksheet = MainReoGrid.CurrentWorksheet;
+            showGrid.CurrentWorksheet = showGrid.CreateWorksheet();
+            Worksheet worksheet = showGrid.CurrentWorksheet;
             int tempColumn = 0;
             foreach (var dictionaryEntry in jsonDic)
             {
@@ -123,7 +121,7 @@ namespace JsonShow
                 {
                     var pos = new CellPosition(row, column);//每一个数据
 
-                    if (destinationWorksheet[pos] != null)
+                    if (destinationWorksheet[pos] != null && !conbineValue.ContainsKey(conbineKey[column]))
                     {
                         conbineValue.Add(conbineKey[column], destinationWorksheet[pos].ToString());
                     }
@@ -133,6 +131,7 @@ namespace JsonShow
                 {
                     break;
                 }
+
                 //处理Dic文件为Jobject，
                 JObject strJObject = JsonTools.SerializeToJobject(conbineValue);
                 //序列化

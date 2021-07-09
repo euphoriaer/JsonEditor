@@ -1,6 +1,9 @@
-﻿using System;
+﻿using JsonShow.Scripts.Tools;
+using LiteDB;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using unvell.ReoGrid;
 
@@ -42,60 +45,102 @@ namespace JsonShow
             this.StartPosition = FormStartPosition.CenterParent;
         }
 
+        private static void CreatDbByJsson(string jsonPath, string dbName, string[] colName)
+        {
+            BsonDocument bson = new BsonDocument();
+            string jsonContent = File.ReadAllText(jsonPath);
+            var jsonDic = JsonTools.DeSerializeToDictionary(jsonContent);
+
+            foreach (var dicEntiy in jsonDic)
+            {
+                bson.Add(dicEntiy.Key, dicEntiy.Value);
+            }
+
+            string id = bson.Keys.ToList()[0].ToString();
+            LiteDBTools.Creat(dbName, colName[0], bson, id);
+        }
+
         private void AutoEditorToolStripMenuItem_Click(object sender, EventArgs e)
         {
             (sender as ToolStripMenuItem).Checked = !(sender as ToolStripMenuItem).Checked;
             AutoMainEditor = (sender as ToolStripMenuItem).Checked;
         }
 
-        private void ColumnAdd(object sender, EventArgs e)
-        {
-            mainWorksheet.ColumnCount++;
-        }
-
         private void CreatJsons(object sender, EventArgs e)
         {
-            mainWorksheet = CreatReoGrid.CurrentWorksheet;
-            string pathAndName = DialogTools.SaveFile();
-            string dirs = Path.GetDirectoryName(pathAndName);
-            //获取第一列，作为文件名
-            int column = 0;
-            List<string> paths = new List<string>();
-            for (int row = 1; row < mainWorksheet.RowCount; row++)
+            //mainWorksheet = CreatReoGrid.CurrentWorksheet;
+
+            var worksheets = CreatReoGrid.Worksheets;
+            bool isOK = false;
+            string pathAndName = DialogTools.SaveFile(out isOK);
+            if (!isOK)
             {
-                if (mainWorksheet[row, column] == null)
+                return;
+            }
+            string jsonDirs = Path.GetDirectoryName(pathAndName);
+
+            foreach (var worksheet in worksheets)
+            {
+                //获取第一列，作为文件名
+                int column = 0;
+                List<string> jsonPaths = new List<string>();
+                bool OnceDB = true;
+                string[] colName = null;
+                for (int row = 1; row < worksheet.RowCount; row++)
                 {
-                    break;
+                    if (worksheet[row, column] == null)
+                    {
+                        break;
+                    }
+                    string fileName = worksheet[row, column].ToString();
+                    string jsonPath = jsonDirs + @"\" + fileName + ".json";
+                    jsonPaths.Add(jsonPath);
+                    if (AutoMainEditor && !mainEditor.jsonDic.ContainsKey(fileName))
+                    {
+                        //添加到主编辑器中
+                        mainEditor.ShowJsonList.Items.Add(fileName);
+                        FileInfo json = new FileInfo(jsonPath);
+                        mainEditor.jsonDic.Add(fileName, json);
+                    }
+                    //设置集合名
+                    colName = fileName.Split('_');
                 }
-                string name = mainWorksheet[row, column].ToString();
-                string path = dirs + @"\" + name + ".json";
-                paths.Add(path);
-                //添加到主编辑器中
-                if (AutoMainEditor)
+                //序列化为文件
+                FileInfo[] jsons = JsonTools.SerializeToFile(worksheet, jsonPaths.ToArray());
+                //添加到数据库
+                string dbName = "json.db";
+                foreach (string jsonPath in jsonPaths)
                 {
-                    mainEditor.ShowJsonList.Items.Add(name);
-                    FileInfo json = new FileInfo(path);
-                    mainEditor.jsonDic.Add(name, json);
+                    if (OnceDB == true)//是第一次就创建，不是就插入
+                    {
+                        CreatDbByJsson(jsonPath, dbName, colName);
+                        OnceDB = false;
+                    }
+                    else
+                    {
+                        InsertDB(jsonPath, dbName, colName);
+                    }
                 }
             }
-            //序列化为文件
-            JsonTools.SerializeToFile(mainWorksheet, paths.ToArray());
-            DialogTools.OpenExplorer(dirs);
-        }
-
-        private void DeSerializedJson_Click(object sender, EventArgs e)
-        {
+            DialogTools.OpenExplorer(jsonDirs);
         }
 
         private void ExcelSerializeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            bool isOpen = false;
-            string[] paths = DialogTools.OpenFiles(out isOpen, "Excel文件|*.xlsx|全部|*.*");
-            if (isOpen == false)
+            try
             {
-                return;
+                bool isOpen = false;
+                string[] paths = DialogTools.OpenFiles(out isOpen, "Excel文件|*.xlsx|全部|*.*");
+                if (isOpen == false)
+                {
+                    return;
+                }
+                CreatReoGrid.Load(paths[0]);
             }
-            CreatReoGrid.Load(paths[0]);
+            catch (Exception exception)
+            {
+                MessageBox.Show("请关掉使用的Excel");
+            }
         }
 
         private void FileDragDrop(object sender, DragEventArgs e)
@@ -114,6 +159,7 @@ namespace JsonShow
             }
             catch (Exception exception)
             {
+                MessageBox.Show("请关掉使用的Excel");
             }
         }
 
@@ -127,6 +173,20 @@ namespace JsonShow
             {
                 e.Effect = DragDropEffects.None;
             }
+        }
+
+        private void InsertDB(string path, string dbName, string[] colName)
+        {
+            BsonDocument bson = new BsonDocument();
+            string jsonContent = File.ReadAllText(path);
+            var jsonDic = JsonTools.DeSerializeToDictionary(jsonContent);
+
+            foreach (var dicEntiy in jsonDic)
+            {
+                bson.Add(dicEntiy.Key, dicEntiy.Value);
+            }
+
+            LiteDBTools.Insert(bson, colName[0], dbName);
         }
 
         private void JsonSerializedToolStripMenuItem_Click(object sender, EventArgs e)
@@ -151,22 +211,6 @@ namespace JsonShow
                 mainWorksheet[rowTwo] = m;
                 tempColumn++;
             }
-        }
-
-        private void RowAdd(object sender, EventArgs e)
-        {
-            mainWorksheet.RowCount++;
-        }
-
-        private void SerializedExcel_Click(object sender, EventArgs e)
-        {
-            bool isOpen = false;
-            string[] paths = DialogTools.OpenFiles(out isOpen, "Excel文件|*.xlsx|全部|*.*");
-            if (isOpen == false)
-            {
-                return;
-            }
-            CreatReoGrid.Load(paths[0]);
         }
 
         private void SerializeJsonForm_Load(object sender, EventArgs e)
