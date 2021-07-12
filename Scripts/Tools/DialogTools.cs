@@ -61,16 +61,18 @@ public static class DialogTools
         return null;
     }
 
-    public static string OpenFolder()
+    public static string OpenFolder(out bool isOk)
     {
         CommonOpenFileDialog open = new CommonOpenFileDialog();
         open.IsFolderPicker = true;
         if (open.ShowDialog() == CommonFileDialogResult.Ok)
         {
             string path = open.FileName;
+            isOk = true;
             return path;
         }
 
+        isOk = false;
         return null;
     }
 

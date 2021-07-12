@@ -55,7 +55,8 @@ namespace JsonShow
             {
                 bson.Add(dicEntiy.Key, dicEntiy.Value);
             }
-
+            //主动添加一条文件路径，方便之后数据库与实际文件的同步
+            bson.Add("Path", jsonPath);
             string id = bson.Keys.ToList()[0].ToString();
             LiteDBTools.Creat(dbName, colName[0], bson, id);
         }
@@ -105,7 +106,7 @@ namespace JsonShow
                     //设置集合名
                     colName = fileName.Split('_');
                 }
-                //序列化为文件
+                //序列化为文件  不带_ID与FilePath
                 FileInfo[] jsons = JsonTools.SerializeToFile(worksheet, jsonPaths.ToArray());
                 //添加到数据库
                 string dbName = "json.db";
@@ -185,7 +186,9 @@ namespace JsonShow
             {
                 bson.Add(dicEntiy.Key, dicEntiy.Value);
             }
-
+            //主动添加一个文件路径
+            bson.Add("Path", path);
+            //数据插入时会默认添加一个_ID
             LiteDBTools.Insert(bson, colName[0], dbName);
         }
 
@@ -222,21 +225,21 @@ namespace JsonShow
 
         private void SetColumnsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var column = new DialogContent();
+            var column = new Dialog();
             var isOK = column.ShowDialog();
             if (isOK == DialogResult.OK)
             {
-                mainWorksheet.ColumnCount = int.Parse(column.returnContent);
+                mainWorksheet.ColumnCount = int.Parse(column.content);
             }
         }
 
         private void SetRowToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var rowNumber = new DialogContent();
+            var rowNumber = new Dialog();
             var isOK = rowNumber.ShowDialog();
             if (isOK == DialogResult.OK)
             {
-                mainWorksheet.RowCount = int.Parse(rowNumber.returnContent);
+                mainWorksheet.RowCount = int.Parse(rowNumber.content);
             }
         }
     }

@@ -1,7 +1,7 @@
 ﻿
 namespace JsonShow
 {
-    partial class DialogContent
+    partial class Dialog
     {
         /// <summary>
         /// Required designer variable.
@@ -71,7 +71,7 @@ namespace JsonShow
             this.Controls.Add(this.CancelSerializeName);
             this.Controls.Add(this.OkSerializeName);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.Name = "DialogContent";
+            this.Name = "Dialog";
             this.Text = "Content";
             this.Load += new System.EventHandler(this.CloumnName_Load);
             this.ResumeLayout(false);

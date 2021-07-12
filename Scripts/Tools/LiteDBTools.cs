@@ -19,9 +19,9 @@ namespace JsonShow.Scripts.Tools
             Directory.CreateDirectory(dbPath);
         }
 
-        public static void Change(BsonDocument content, string collection, string dbPath)
+        public static void Update(BsonDocument content, string collection, string dbName)
         {
-            using (var db = new LiteDatabase(dbPath))
+            using (var db = new LiteDatabase(dbPath + dbName))
             {
                 var col = db.GetCollection(collection);
 

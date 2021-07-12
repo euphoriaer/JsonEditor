@@ -107,6 +107,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Scripts\Form\Rich.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Scripts\Form\Rich.Designer.cs">
+      <DependentUpon>Rich.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Scripts\Form\Dialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Scripts\Form\Dialog.Designer.cs">
+      <DependentUpon>Dialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Scripts\Tools\DialogTools.cs" />
     <Compile Include="Scripts\Form\JsonEditor.cs">
       <SubType>Form</SubType>
@@ -123,12 +135,6 @@
     <Compile Include="Scripts\Form\SerializeJsonForm.Designer.cs">
       <DependentUpon>SerializeJsonForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Scripts\Form\SerializeName.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Scripts\Form\SerializeName.Designer.cs">
-      <DependentUpon>SerializeName.cs</DependentUpon>
-    </Compile>
     <Compile Include="Scripts\Tools\LiteDBTools.cs" />
     <EmbeddedResource Include="Scripts\Form\JsonEditor.resx">
       <DependentUpon>JsonEditor.cs</DependentUpon>
@@ -143,11 +149,14 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="Scripts\Form\Rich.resx">
+      <DependentUpon>Rich.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Scripts\Form\SerializeJsonForm.resx">
       <DependentUpon>SerializeJsonForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Scripts\Form\SerializeName.resx">
-      <DependentUpon>SerializeName.cs</DependentUpon>
+    <EmbeddedResource Include="Scripts\Form\Dialog.resx">
+      <DependentUpon>Dialog.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Config\packages.config" />
     <None Include="packages.config" />
