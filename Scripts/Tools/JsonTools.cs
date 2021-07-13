@@ -17,7 +17,7 @@ namespace JsonShow
         /// </summary>
         /// <param name="json">The json string.</param>
         /// <returns></returns>
-        public static Dictionary<string, string> DeSerializeToDictionary(string json)
+        public static Dictionary<string, string> DeSerializeToDictionary(string json, params string[] skipKeys)
         {
             Dictionary<string, string> jsonDic = new Dictionary<string, string>();
             if (string.IsNullOrEmpty(json))
@@ -25,53 +25,42 @@ namespace JsonShow
                 return null;
             }
 
+                JObject jo = (JObject)JsonConvert.DeserializeObject(json);
+                if (jo==null)
+                {
+                    MessageBox.Show("Jobject转化失败");
+                    return null;
+                }
             try
             {
-                JObject jo = (JObject)JsonConvert.DeserializeObject(json);
                 foreach (var item in jo)
                 {
                     jsonDic.Add(item.Key, item.Value.ToString());
+                }
+                //skipKey
+                if (skipKeys != null)
+                {
+                    foreach (var skipKey in skipKeys)
+                    {
+                        if (jsonDic.ContainsKey(skipKey))
+                        {
+                            jsonDic.Remove(skipKey);
+                        }
+                    }
                 }
 
                 return jsonDic;
             }
             catch (Exception e)
             {
-                MessageBox.Show("无法解析为表格");
+               
             }
 
             return jsonDic;
         }
 
         /// <summary>
-        /// Des the serialize to form. 不在标题栏出现sheet
-        /// </summary>
-        /// <param name="json">The json.</param>
-        /// <param name="showGrid">The show grid.</param>
-        /// <returns></returns>
-        public static Worksheet DeSerializeToForm(FileInfo json, ReoGridControl showGrid)
-        {
-            string content = File.ReadAllText(json.FullName);
-            var jsonDic = JsonTools.DeSerializeToDictionary(content);
-
-            showGrid.CurrentWorksheet = showGrid.CreateWorksheet();
-            Worksheet worksheet = showGrid.CurrentWorksheet;
-            int tempColumn = 0;
-            foreach (var dictionaryEntry in jsonDic)
-            {
-                var rowOne = new CellPosition(0, tempColumn); //第一行
-                var rowTwo = new CellPosition(1, tempColumn); //第二行
-                worksheet[rowOne] = dictionaryEntry.Key as string;
-                string m = dictionaryEntry.Value;
-                worksheet[rowTwo] = m;
-                tempColumn++;
-            }
-
-            return worksheet;
-        }
-
-        /// <summary>
-        /// De the serialize to form.
+        /// Deserialize Json to form.
         /// </summary>
         /// <param name="json">The json.</param>
         /// <param name="sheet">The sheet.</param>
@@ -80,19 +69,7 @@ namespace JsonShow
         public static Worksheet DeSerializeToForm(string json, Worksheet sheet, params string[] skipKeys)
         {
             string content = json;
-            var jsonDic = JsonTools.DeSerializeToDictionary(content);
-            if (skipKeys != null)
-            {
-                foreach (var skipKey in skipKeys)
-                {
-                    if (jsonDic.ContainsKey(skipKey))
-                    {
-                        jsonDic.Remove(skipKey);
-                    }
-                }
-            }
-
-            //showGrid.CurrentWorksheet = showGrid.CreateWorksheet("");
+            var jsonDic = JsonTools.DeSerializeToDictionary(content, skipKeys);
             Worksheet worksheet = sheet;
             int tempColumn = 0;
             foreach (var dictionaryEntry in jsonDic)
@@ -197,17 +174,23 @@ namespace JsonShow
             return fileInfos.ToArray();
         }
 
-        public static JObject SerializeToJobject(Dictionary<string, string> source)
+        public static JObject SerializeToJobject(Dictionary<string, string> source, params string[] skipKeys)
         {
             JObject target = new JObject();
 
             foreach (var DicEntity in source)
             {
+                var m = skipKeys.Where(p => p == DicEntity.Key);
+                if (m.Count() > 0)
+                {
+                    continue;
+                }
                 target.Add(DicEntity.Key, DicEntity.Value);
             }
             return target;
         }
-        public static JObject SerializeToJobject<T,N>(IDictionary<T, N> source, params string[] skipKeys)
+
+        public static JObject SerializeToJobject<T, N>(IDictionary<T, N> source, params string[] skipKeys)
         {
             JObject target = new JObject();
 
@@ -215,12 +198,12 @@ namespace JsonShow
             {
                 string key = DicEntity.Key as string;
                 string value = DicEntity.Value as string;
-                var m=skipKeys.Where(p => p == key);
-                if (m.Count()>0)
+                var m = skipKeys.Where(p => p == key);
+                if (m.Count() > 0)
                 {
                     continue;
                 }
-                target.Add(DicEntity.Key as string, value);
+                target.Add(value, value);
             }
             return target;
         }
@@ -262,6 +245,20 @@ namespace JsonShow
             Debug.WriteLine(fJsonString);
             conbineValue.Clear();
             return fJsonString;
+        }
+
+        public static string SerializeToString(Dictionary<string, string> source, params string[] skipKeys)
+        {
+            var jobject = SerializeToJobject(source, skipKeys);
+            string json = JsonConvert.SerializeObject(jobject);
+            return json;
+        }
+
+        public static string SerializeToString<T, N>(IDictionary<T, N> source, params string[] skipKeys)
+        {
+            var jobject = SerializeToJobject<T, N>(source, skipKeys);
+            string json = JsonConvert.SerializeObject(jobject);
+            return json;
         }
 
         //public static
