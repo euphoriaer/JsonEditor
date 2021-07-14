@@ -45,7 +45,7 @@ namespace JsonShow
             this.StartPosition = FormStartPosition.CenterParent;
         }
 
-        private static void CreatDbByJsson(string jsonPath, string dbName, string[] colName)
+        private static void CreatDbByJsson(string jsonPath, string dbName, string assemble)
         {
             BsonDocument bson = new BsonDocument();
             string jsonContent = File.ReadAllText(jsonPath);
@@ -58,7 +58,7 @@ namespace JsonShow
             //主动添加一条文件路径，方便之后数据库与实际文件的同步
             bson.Add("Path", jsonPath);
             string id = bson.Keys.ToList()[0].ToString();
-            LiteDBTools.Creat(dbName, colName[0], bson, id);
+            LiteDBTools.Creat(dbName, assemble, bson, id);
         }
 
         private void AutoEditorToolStripMenuItem_Click(object sender, EventArgs e)
@@ -66,12 +66,13 @@ namespace JsonShow
             (sender as ToolStripMenuItem).Checked = !(sender as ToolStripMenuItem).Checked;
             AutoMainEditor = (sender as ToolStripMenuItem).Checked;
         }
-
+        
         private void CreatJsons(object sender, EventArgs e)
         {
             //mainWorksheet = CreatReoGrid.CurrentWorksheet;
 
             var worksheets = CreatReoGrid.Worksheets;
+            bool OnceDB = true;
             bool isOK = false;
             string pathAndName = DialogTools.SaveFile(out isOK);
             if (!isOK)
@@ -85,8 +86,8 @@ namespace JsonShow
                 //获取第一列，作为文件名
                 int column = 0;
                 List<string> jsonPaths = new List<string>();
-                bool OnceDB = true;
-                string[] colName = null;
+
+                string collectName = null;
                 for (int row = 1; row < worksheet.RowCount; row++)
                 {
                     if (worksheet[row, column] == null)
@@ -104,22 +105,26 @@ namespace JsonShow
                         mainEditor.jsonDic.Add(fileName, json);
                     }
                     //设置集合名
-                    colName = fileName.Split('_');
+                     collectName = fileName.Split('_')[0];
                 }
+                //集合名添加到类型中
+                mainEditor.SortList.Items.Add(collectName);
                 //序列化为文件  不带_ID与FilePath
                 FileInfo[] jsons = JsonTools.SerializeToFile(worksheet, jsonPaths.ToArray());
-                //添加到数据库
+                //添加到数据库  
+             
                 string dbName = "json.db";
                 foreach (string jsonPath in jsonPaths)
                 {
                     if (OnceDB == true)//是第一次就创建，不是就插入
-                    {
-                        CreatDbByJsson(jsonPath, dbName, colName);
+                    { 
+                        //第一次要确定索引
+                        CreatDbByJsson(jsonPath, dbName, collectName);
                         OnceDB = false;
                     }
                     else
                     {
-                        InsertDB(jsonPath, dbName, colName);
+                        InsertDB(jsonPath, dbName, collectName);
                     }
                 }
             }
@@ -176,7 +181,7 @@ namespace JsonShow
             }
         }
 
-        private void InsertDB(string path, string dbName, string[] colName)
+        private void InsertDB(string path, string dbName, string assemble)
         {
             BsonDocument bson = new BsonDocument();
             string jsonContent = File.ReadAllText(path);
@@ -189,7 +194,7 @@ namespace JsonShow
             //主动添加一个文件路径
             bson.Add("Path", path);
             //数据插入时会默认添加一个_ID
-            LiteDBTools.Insert(bson, colName[0], dbName);
+            LiteDBTools.Insert(bson, assemble, dbName);
         }
 
         private void JsonSerializedToolStripMenuItem_Click(object sender, EventArgs e)

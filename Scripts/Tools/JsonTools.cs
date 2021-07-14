@@ -25,12 +25,12 @@ namespace JsonShow
                 return null;
             }
 
-                JObject jo = (JObject)JsonConvert.DeserializeObject(json);
-                if (jo==null)
-                {
-                    MessageBox.Show("Jobject转化失败");
-                    return null;
-                }
+            JObject jo = (JObject)JsonConvert.DeserializeObject(json);
+            if (jo == null)
+            {
+                MessageBox.Show("Jobject转化失败");
+                return null;
+            }
             try
             {
                 foreach (var item in jo)
@@ -53,7 +53,6 @@ namespace JsonShow
             }
             catch (Exception e)
             {
-               
             }
 
             return jsonDic;
@@ -85,6 +84,17 @@ namespace JsonShow
             return worksheet;
         }
 
+        public static Object DeSerializeToObject(string json)
+        {
+            object target = JsonConvert.DeserializeObject(json);
+            return target;
+        }
+        public static T DeSerializeToObject<T>(string json)
+        {
+            T target = JsonConvert.DeserializeObject<T>(json);
+            return target;
+        }
+
         /// <summary>
         /// Formats the json string.
         /// </summary>
@@ -92,10 +102,10 @@ namespace JsonShow
         /// <returns></returns>
         public static string Format(string json)
         {
-            Debug.WriteLine("要格式化的字符串:  "+json);
-          
-           string fjson= ConvertJsonString(json);
-           Debug.WriteLine("格式化:  " + fjson);
+            Debug.WriteLine("要格式化的字符串:  " + json);
+
+            string fjson = ConvertJsonString(json);
+            Debug.WriteLine("格式化:  " + fjson);
             return fjson;
             ////格式化json字符串
             //JsonSerializer serializer = new JsonSerializer();
@@ -119,33 +129,6 @@ namespace JsonShow
             //    return json;
             //}
         }
-
-        private static string ConvertJsonString(string str)
-        {
-            //格式化json字符串
-            JsonSerializer serializer = new JsonSerializer();
-            TextReader tr = new StringReader(str);
-            JsonTextReader jtr = new JsonTextReader(tr);
-            object obj = serializer.Deserialize(jtr);
-            if (obj != null)
-            {
-                StringWriter textWriter = new StringWriter();
-                JsonTextWriter jsonWriter = new JsonTextWriter(textWriter)
-                {
-                    Formatting = Formatting.Indented,
-                    Indentation = 4,
-                    IndentChar = ' '
-                };
-                serializer.Serialize(jsonWriter, obj);
-                return textWriter.ToString();
-            }
-            else
-            {
-                return str;
-            }
-        }
-
-
 
         /// <summary>
         /// Serializes to file. 从第二行开始，第二列
@@ -289,15 +272,39 @@ namespace JsonShow
         public static string SerializeToString<T, N>(IDictionary<T, N> source, params string[] skipKeys)
         {
             var jobject = SerializeToJobject<T, N>(source, skipKeys);
-            string json = JsonConvert.SerializeObject(jobject,Formatting.Indented);
+            string json = JsonConvert.SerializeObject(jobject, Formatting.Indented);
             return json;
         }
 
         public static string SerializeToString<T>(T obj)
         {
-       
             string json = JsonConvert.SerializeObject(obj, Formatting.Indented);
             return json;
+        }
+
+        private static string ConvertJsonString(string str)
+        {
+            //格式化json字符串
+            JsonSerializer serializer = new JsonSerializer();
+            TextReader tr = new StringReader(str);
+            JsonTextReader jtr = new JsonTextReader(tr);
+            object obj = serializer.Deserialize(jtr);
+            if (obj != null)
+            {
+                StringWriter textWriter = new StringWriter();
+                JsonTextWriter jsonWriter = new JsonTextWriter(textWriter)
+                {
+                    Formatting = Formatting.Indented,
+                    Indentation = 4,
+                    IndentChar = ' '
+                };
+                serializer.Serialize(jsonWriter, obj);
+                return textWriter.ToString();
+            }
+            else
+            {
+                return str;
+            }
         }
 
         //public static

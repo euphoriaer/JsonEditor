@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 using unvell.ReoGrid;
 using JsonSerializer = LiteDB.JsonSerializer;
 
@@ -28,6 +29,7 @@ namespace JsonShow
 
         private string cachePath = Application.StartupPath + @"\Cache\";
         private string dbName = "json.db";
+        private string porjectName = "Default";
         private Worksheet mainWorksheet;
 
         private bool richOpen = false;
@@ -37,7 +39,8 @@ namespace JsonShow
         public JsonEditor()
         {
             InitializeComponent();
-
+            OnceLoad();
+            this.FormClosing += CloseForm;
             ShowJsonList.MouseClick += (e, se) =>
             {
                 //todo  C# listbox 单击空白区检测
@@ -62,6 +65,31 @@ namespace JsonShow
             AutoFormHook.Checked = true;
             AutoSaveHook.Checked = true;
             mainWorksheet = MainReoGrid.CurrentWorksheet;
+        }
+
+        private void ExpertJsonToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            bool isOk;
+            string savePath = DialogTools.SaveFile(out isOk);
+            if (!isOk)
+            {
+                return;
+            }
+            string prefix = SortList.SelectedItem.ToString();
+            var jsonNames = ShowJsonList.Items;
+            stringList stringList = new stringList();
+            foreach (var jsonName in jsonNames)
+            {
+                FileInfo jsonFileInfo = jsonDic[jsonName as string];
+                string json = File.ReadAllText(jsonFileInfo.FullName);
+                object jObject = JsonTools.DeSerializeToObject(json);
+                stringList.content.Add(jObject);
+            }
+
+            string expertJson = JsonTools.SerializeToString(stringList);
+            Debug.WriteLine("expertJson:  " + expertJson);
+
+            File.WriteAllText(savePath, expertJson);
         }
 
         #region EditorItem
@@ -102,7 +130,6 @@ namespace JsonShow
             string sheetName = MainReoGrid.CurrentWorksheet.Cells[0, cell.Column].DisplayText;
             var sheet = CreatSheetWork(sheetName);
 
-           
             JsonTools.DeSerializeToForm(cellJson, sheet, skipKey);
             //设置文本风格
             SetFont(sheet);
@@ -255,7 +282,7 @@ namespace JsonShow
             AutoCellSize(listSheet);
             //添加单元格的数据同步
             SheetChangedEventListBox(listSheet);
-        
+
             //立即修改Rich
             if (richTextBox != null)
             {
@@ -444,22 +471,6 @@ namespace JsonShow
 
         #region Function
 
-        public Worksheet CreatSheetMemory(string sheetName)
-        {
-            var tempWork = MainReoGrid.Worksheets.Where(p => p.Name == sheetName);
-            if (tempWork.Count() == 0)
-            {
-                var newSheet = MainReoGrid.CreateWorksheet(sheetName);
-                SetFont(newSheet);
-                MainReoGrid.CurrentWorksheet = newSheet;
-            }
-            else
-            {
-                MainReoGrid.CurrentWorksheet = tempWork.First();
-            }
-            return MainReoGrid.CurrentWorksheet;
-        }
-
         private void AutoCellSize(Worksheet worksheet)
         {
             if (autoCellSize)
@@ -514,6 +525,36 @@ namespace JsonShow
             return false;
         }
 
+        private void CloseForm(object sender, FormClosingEventArgs e)
+        {
+            Debug.WriteLine("关闭窗体,保存项目");
+            Project project = new Project();
+            project.showJsonList = jsonDic;
+            foreach (var item in SortList.Items)
+            {
+                project.sortList.Add(item as string);
+            }
+
+            project.SaveProject(porjectName);
+            Debug.WriteLine("保存项目完成");
+        }
+
+        private Worksheet CreatSheetMemory(string sheetName)
+        {
+            var tempWork = MainReoGrid.Worksheets.Where(p => p.Name == sheetName);
+            if (tempWork.Count() == 0)
+            {
+                var newSheet = MainReoGrid.CreateWorksheet(sheetName);
+                SetFont(newSheet);
+                MainReoGrid.CurrentWorksheet = newSheet;
+            }
+            else
+            {
+                MainReoGrid.CurrentWorksheet = tempWork.First();
+            }
+            return MainReoGrid.CurrentWorksheet;
+        }
+
         private string GetCellContent(Cell cell)
         {
             string id = cell.DisplayText;
@@ -540,6 +581,33 @@ namespace JsonShow
             //string json2 = JsonTools.SerializeToString(json);
             //Debug.WriteLine("读取的数据库文件："+json2);
             return json;
+        }
+
+        private void OnceLoad()
+        {
+            Debug.WriteLine("打开窗体，载入数据");
+            Project project = new Project();
+            if (!File.Exists(project.defaultSavePath+ porjectName))
+            {
+                return;
+            }
+            string json = project.OpenProject(porjectName);
+            if (string.IsNullOrEmpty(json))
+            {
+                return;
+            }
+            Project projectObj = JsonConvert.DeserializeObject<Project>(json);
+            foreach (var entity in projectObj.showJsonList)
+            {
+                jsonDic.Add(entity.Key, entity.Value);
+            }
+
+
+            foreach (var item in projectObj.sortList)
+            {
+                SortList.Items.Add(item);
+            }
+            Debug.WriteLine("载入数据完成");
         }
 
         private void RefreshForm(string cacheContent)
@@ -576,6 +644,21 @@ namespace JsonShow
                 ShowJsonList.Sorted = true;
                 ShowJsonList.Items.Add(jsonDicKey);
             }
+        }
+
+        private string[] SearchAllByPrefix(string searchPrefix)
+        {
+            //从所有Json文件搜索 特定前缀
+            List<string> searchList = new List<string>();
+            foreach (var jsonDicKey in jsonDic.Keys)
+            {
+                string prefix = jsonDicKey.Split('_')[0];
+                if (prefix == searchPrefix)
+                {
+                    searchList.Add(jsonDicKey);
+                }
+            }
+            return searchList.ToArray();
         }
 
         private string[] SearchAllList(string searchTarget)
@@ -636,7 +719,6 @@ namespace JsonShow
 
         private void SheetChangedEventListBox(Worksheet destinationWorksheet)
         {//点击listbox 从而生成的sheet 单元格，修改事件
-            
             destinationWorksheet.CellDataChanged += ((send, args) =>
             {
                 //string selectName = ShowJsonList.SelectedItem.ToString();
@@ -657,7 +739,6 @@ namespace JsonShow
         {   //右键查看详情 从而生成的sheet 单元格，修改事件
             destinationWorksheet.CellDataChanged += ((send, args) =>
             {
-                
                 string afterAllJson = JsonTools.SerializeToString(MainReoGrid.CurrentWorksheet);
                 Debug.WriteLine("afterJson：" + afterAllJson);
                 richTextBox.Text = afterAllJson;
@@ -676,7 +757,6 @@ namespace JsonShow
                 }
                 catch (Exception e)
                 {
-                   
                     return;
                 }
 
@@ -711,10 +791,10 @@ namespace JsonShow
             }
         }
 
-        private BsonDocument UpDateDB(string name, string collectName,Worksheet sheet )
+        private BsonDocument UpDateDB(string name, string collectName, Worksheet sheet)
         {
             string cmd = string.Format("$.Name = '{0}'", name);
-            
+
             //找到Bson数据，赋值新的
             BsonDocument beforeBson = LiteDBTools.SearchFirst(cmd, collectName, dbName);
             BsonDocument newBson = new BsonDocument();
@@ -723,7 +803,7 @@ namespace JsonShow
             CellPosition cellPos = new CellPosition(pos.Row - 1, pos.Col);
 
             string key = MainReoGrid.CurrentWorksheet[cellPos].ToString();
-            
+
             foreach (var bsonEntity in beforeBson)
             {
                 if (bsonEntity.Key == key)
@@ -739,10 +819,50 @@ namespace JsonShow
             //更新数据库
             LiteDBTools.Update(newBson, collectName, dbName);
             Debug.WriteLine("数据库 更新完成: ");
-       
+
             return newBson;
         }
 
         #endregion Function
+
+        private void SortList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (SortList.SelectedItem == null)
+            {
+                return;
+            }
+            string searchPrefix = SortList.SelectedItem.ToString();
+
+            searDic.Clear();
+            ShowJsonList.ClearSelected();
+            if (String.IsNullOrEmpty(searchPrefix))
+            {
+                ShowAllJson();
+                return;
+            }
+
+            string[] itemNames = SearchAllByPrefix(searchPrefix);
+            foreach (var itemName in itemNames)
+            {
+                if (!searDic.ContainsKey(itemName))
+                {
+                    searDic.Add(itemName, jsonDic[itemName]);
+                }
+            }
+
+            //清空列表 重新添加
+            richTextBox.Text = "";
+            ShowJsonList.Items.Clear();
+            foreach (var SearDictionaryKey in searDic.Keys)
+            {
+                ShowJsonList.Sorted = true;
+                ShowJsonList.Items.Add(SearDictionaryKey);
+            }
+        }
+    }
+
+    public class stringList
+    {
+        public List<object> content = new List<object>();
     }
 }

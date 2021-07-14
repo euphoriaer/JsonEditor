@@ -19,11 +19,11 @@ namespace JsonShow.Scripts.Tools
             Directory.CreateDirectory(dbPath);
         }
 
-        public static void Update(BsonDocument content, string collection, string dbName)
+        public static void Update(BsonDocument content, string assemble, string dbName)
         {
             using (var db = new LiteDatabase(dbPath + dbName))
             {
-                var col = db.GetCollection(collection);
+                var col = db.GetCollection(assemble);
 
                 col.Update(content);
             }
@@ -33,42 +33,42 @@ namespace JsonShow.Scripts.Tools
         /// Creats the database .
         /// </summary>
         /// <param name="dbName">The database path.</param>
-        /// <param name="collection">The collection.</param>
+        /// <param name="assemble">The assemble.</param>
         /// <param name="firstRow">The first row.</param>
         /// <param name="id">The identifier.</param>
-        public static void Creat(string dbName, string collection, BsonDocument firstRow, string id)
+        public static void Creat(string dbName, string assemble, BsonDocument firstRow, string id)
         {
             using (var db = new LiteDatabase(dbPath + dbName))
             {
-                var col = db.GetCollection(collection);
+                var col = db.GetCollection(assemble);
                 col.Insert(firstRow);
                 col.EnsureIndex(id);
             }
         }
 
-        public static void Delete(BsonDocument content, string collection, string dbName)
+        public static void Delete(BsonDocument content, string assemble, string dbName)
         {
             using (var db = new LiteDatabase(dbPath + dbName))
             {
-                var col = db.GetCollection(collection);
+                var col = db.GetCollection(assemble);
                 col.Delete(content);
             }
         }
 
-        public static void Insert(BsonDocument content, string collection, string dbName)
+        public static void Insert(BsonDocument content, string assemble, string dbName)
         {
             using (var db = new LiteDatabase(dbPath + dbName))
             {
-                var col = db.GetCollection(collection);
+                var col = db.GetCollection(assemble);
                 col.Insert(content);
             }
         }
 
-        public static IEnumerable<BsonDocument> SearchAll(string collection, string dbName)
+        public static IEnumerable<BsonDocument> SearchAll(string assemble, string dbName)
         {
             using (var db = new LiteDatabase(dbPath + dbName))
             {
-                var col = db.GetCollection(collection);
+                var col = db.GetCollection(assemble);
 
                 var customer = col.FindAll();
 
@@ -76,11 +76,11 @@ namespace JsonShow.Scripts.Tools
             }
         }
 
-        public static BsonDocument SearchByID(string id, string collection, string dbName)
+        public static BsonDocument SearchByID(string id, string assemble, string dbName)
         {
             using (var db = new LiteDatabase(dbPath + dbName))
             {
-                var col = db.GetCollection(collection);
+                var col = db.GetCollection(assemble);
 
                 var customer = col.FindById(id);
 
@@ -88,11 +88,11 @@ namespace JsonShow.Scripts.Tools
             }
         }
 
-        public static BsonDocument SearchFirst(string cmd, string collection, string dbName)
+        public static BsonDocument SearchFirst(string cmd, string assemble, string dbName)
         {
             using (var db = new LiteDatabase(dbPath + dbName))
             {
-                var col = db.GetCollection(collection);
+                var col = db.GetCollection(assemble);
 
                 var customer = col.FindOne(cmd);
                 return customer;

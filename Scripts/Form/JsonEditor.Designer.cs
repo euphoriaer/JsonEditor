@@ -40,6 +40,7 @@ namespace JsonShow
             this.SearchButton = new System.Windows.Forms.Button();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.打开项目ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openJsonFile = new System.Windows.Forms.ToolStripMenuItem();
             this.OpenJsonFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.SaveCurrentJson = new System.Windows.Forms.ToolStripMenuItem();
@@ -67,7 +68,9 @@ namespace JsonShow
             this.查看详细内容ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label1 = new System.Windows.Forms.Label();
             this.JsonEditorRich = new System.Windows.Forms.RichTextBox();
-            this.打开项目ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.分类 = new System.Windows.Forms.Label();
+            this.SortList = new System.Windows.Forms.ListBox();
+            this.导出当前Json类型文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -83,10 +86,10 @@ namespace JsonShow
             this.ShowJsonList.FormattingEnabled = true;
             this.ShowJsonList.HorizontalScrollbar = true;
             this.ShowJsonList.ItemHeight = 19;
-            this.ShowJsonList.Location = new System.Drawing.Point(43, 80);
+            this.ShowJsonList.Location = new System.Drawing.Point(216, 80);
             this.ShowJsonList.Name = "ShowJsonList";
             this.ShowJsonList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.ShowJsonList.Size = new System.Drawing.Size(328, 631);
+            this.ShowJsonList.Size = new System.Drawing.Size(259, 631);
             this.ShowJsonList.TabIndex = 2;
             this.ShowJsonList.SelectedIndexChanged += new System.EventHandler(this.JsonShowList_SelectedIndexChanged);
             // 
@@ -122,9 +125,9 @@ namespace JsonShow
             // 
             // SearchText
             // 
-            this.SearchText.Location = new System.Drawing.Point(43, 28);
+            this.SearchText.Location = new System.Drawing.Point(196, 38);
             this.SearchText.Name = "SearchText";
-            this.SearchText.Size = new System.Drawing.Size(181, 21);
+            this.SearchText.Size = new System.Drawing.Size(148, 21);
             this.SearchText.TabIndex = 4;
             // 
             // SearchButton
@@ -133,7 +136,7 @@ namespace JsonShow
             this.SearchButton.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("SearchButton.BackgroundImage")));
             this.SearchButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.SearchButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.SearchButton.Location = new System.Drawing.Point(232, 28);
+            this.SearchButton.Location = new System.Drawing.Point(350, 38);
             this.SearchButton.Name = "SearchButton";
             this.SearchButton.Size = new System.Drawing.Size(21, 21);
             this.SearchButton.TabIndex = 5;
@@ -163,10 +166,18 @@ namespace JsonShow
             this.SaveCurrentJson,
             this.SaveAllJson,
             this.AutoSaveHook,
-            this.AutoFormHook});
+            this.AutoFormHook,
+            this.导出当前Json类型文件ToolStripMenuItem});
             this.文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
             this.文件ToolStripMenuItem.Size = new System.Drawing.Size(44, 21);
             this.文件ToolStripMenuItem.Text = "文件";
+            // 
+            // 打开项目ToolStripMenuItem
+            // 
+            this.打开项目ToolStripMenuItem.Name = "打开项目ToolStripMenuItem";
+            this.打开项目ToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+            this.打开项目ToolStripMenuItem.Text = "打开项目";
+            this.打开项目ToolStripMenuItem.Click += new System.EventHandler(this.OpenProjectToolStripMenuItem_Click);
             // 
             // openJsonFile
             // 
@@ -202,7 +213,7 @@ namespace JsonShow
             this.SaveAllJson.Text = "保存所有修改";
             this.SaveAllJson.Click += new System.EventHandler(this.SaveAllJsons);
             // 
-            // 自动保存ToolStripMenuItem
+            // AutoSaveHook
             // 
             this.AutoSaveHook.Name = "AutoSaveHook";
             this.AutoSaveHook.Size = new System.Drawing.Size(226, 22);
@@ -333,7 +344,7 @@ namespace JsonShow
             // Json
             // 
             this.Json.AutoSize = true;
-            this.Json.Location = new System.Drawing.Point(43, 62);
+            this.Json.Location = new System.Drawing.Point(280, 62);
             this.Json.Name = "Json";
             this.Json.Size = new System.Drawing.Size(53, 12);
             this.Json.TabIndex = 8;
@@ -348,7 +359,7 @@ namespace JsonShow
             this.MainReoGrid.ColumnHeaderContextMenuStrip = null;
             this.MainReoGrid.ContextMenuStrip = this.FormCell;
             this.MainReoGrid.LeadHeaderContextMenuStrip = null;
-            this.MainReoGrid.Location = new System.Drawing.Point(413, 80);
+            this.MainReoGrid.Location = new System.Drawing.Point(494, 80);
             this.MainReoGrid.Name = "MainReoGrid";
             this.MainReoGrid.RowHeaderContextMenuStrip = null;
             this.MainReoGrid.Script = null;
@@ -357,7 +368,7 @@ namespace JsonShow
             this.MainReoGrid.SheetTabVisible = true;
             this.MainReoGrid.SheetTabWidth = 60;
             this.MainReoGrid.ShowScrollEndSpacing = true;
-            this.MainReoGrid.Size = new System.Drawing.Size(859, 631);
+            this.MainReoGrid.Size = new System.Drawing.Size(778, 631);
             this.MainReoGrid.TabIndex = 10;
             this.MainReoGrid.Text = "reoGridControl1";
             this.MainReoGrid.Click += new System.EventHandler(this.MainReoGrid_Click);
@@ -382,7 +393,7 @@ namespace JsonShow
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(411, 62);
+            this.label1.Location = new System.Drawing.Point(492, 62);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(101, 12);
             this.label1.TabIndex = 11;
@@ -400,18 +411,45 @@ namespace JsonShow
             this.JsonEditorRich.Text = "";
             this.JsonEditorRich.Visible = false;
             // 
-            // 打开项目ToolStripMenuItem
+            // 分类
             // 
-            this.打开项目ToolStripMenuItem.Name = "打开项目ToolStripMenuItem";
-            this.打开项目ToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
-            this.打开项目ToolStripMenuItem.Text = "打开项目";
-            this.打开项目ToolStripMenuItem.Click += new System.EventHandler(this.OpenProjectToolStripMenuItem_Click);
+            this.分类.AutoSize = true;
+            this.分类.Location = new System.Drawing.Point(12, 62);
+            this.分类.Name = "分类";
+            this.分类.Size = new System.Drawing.Size(29, 12);
+            this.分类.TabIndex = 13;
+            this.分类.Text = "类型";
+            // 
+            // SortList
+            // 
+            this.SortList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.SortList.ContextMenuStrip = this.contextMenuStrip;
+            this.SortList.Font = new System.Drawing.Font("黑体", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.SortList.FormattingEnabled = true;
+            this.SortList.HorizontalScrollbar = true;
+            this.SortList.ItemHeight = 19;
+            this.SortList.Location = new System.Drawing.Point(15, 80);
+            this.SortList.Name = "SortList";
+            this.SortList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this.SortList.Size = new System.Drawing.Size(181, 631);
+            this.SortList.TabIndex = 14;
+            this.SortList.SelectedIndexChanged += new System.EventHandler(this.SortList_SelectedIndexChanged);
+            // 
+            // 导出当前Json类型文件ToolStripMenuItem
+            // 
+            this.导出当前Json类型文件ToolStripMenuItem.Name = "导出当前Json类型文件ToolStripMenuItem";
+            this.导出当前Json类型文件ToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+            this.导出当前Json类型文件ToolStripMenuItem.Text = "导出当前Json类型文件";
+            this.导出当前Json类型文件ToolStripMenuItem.Click += new System.EventHandler(this.ExpertJsonToolStripMenuItem_Click);
             // 
             // JsonEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(1284, 761);
+            this.Controls.Add(this.SortList);
+            this.Controls.Add(this.分类);
             this.Controls.Add(this.JsonEditorRich);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.MainReoGrid);
@@ -475,6 +513,9 @@ namespace JsonShow
         private System.Windows.Forms.ToolStripMenuItem json内容展示窗口ToolStripMenuItem;
         private System.Windows.Forms.RichTextBox JsonEditorRich;
         private System.Windows.Forms.ToolStripMenuItem 打开项目ToolStripMenuItem;
+        private System.Windows.Forms.Label 分类;
+        public System.Windows.Forms.ListBox SortList;
+        private System.Windows.Forms.ToolStripMenuItem 导出当前Json类型文件ToolStripMenuItem;
     }
 }
 

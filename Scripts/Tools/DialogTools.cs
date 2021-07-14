@@ -44,7 +44,7 @@ public static class DialogTools
         sfd.RestoreDirectory = true;
 
         //设置默认的文件名
-        sfd.FileName = "选择保存的文件夹";// in wpf is  sfd.FileName = "YourFileName";
+        sfd.FileName = "";// in wpf is  sfd.FileName = "YourFileName";
 
         //点了保存按钮进入
         if (sfd.ShowDialog() == DialogResult.OK)
