@@ -44,7 +44,7 @@ namespace JsonShow
             this.OpenJsonFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.SaveCurrentJson = new System.Windows.Forms.ToolStripMenuItem();
             this.SaveAllJson = new System.Windows.Forms.ToolStripMenuItem();
-            this.自动保存ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.AutoSaveHook = new System.Windows.Forms.ToolStripMenuItem();
             this.AutoFormHook = new System.Windows.Forms.ToolStripMenuItem();
             this.编辑ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearJsonList = new System.Windows.Forms.ToolStripMenuItem();
@@ -162,7 +162,7 @@ namespace JsonShow
             this.OpenJsonFolder,
             this.SaveCurrentJson,
             this.SaveAllJson,
-            this.自动保存ToolStripMenuItem,
+            this.AutoSaveHook,
             this.AutoFormHook});
             this.文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
             this.文件ToolStripMenuItem.Size = new System.Drawing.Size(44, 21);
@@ -204,10 +204,10 @@ namespace JsonShow
             // 
             // 自动保存ToolStripMenuItem
             // 
-            this.自动保存ToolStripMenuItem.Name = "自动保存ToolStripMenuItem";
-            this.自动保存ToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
-            this.自动保存ToolStripMenuItem.Text = "自动保存";
-            this.自动保存ToolStripMenuItem.Click += new System.EventHandler(this.AutoSaveToolStripMenuItem_Click);
+            this.AutoSaveHook.Name = "AutoSaveHook";
+            this.AutoSaveHook.Size = new System.Drawing.Size(226, 22);
+            this.AutoSaveHook.Text = "自动保存";
+            this.AutoSaveHook.Click += new System.EventHandler(this.AutoSaveToolStripMenuItem_Click);
             // 
             // AutoFormHook
             // 
@@ -405,7 +405,7 @@ namespace JsonShow
             this.打开项目ToolStripMenuItem.Name = "打开项目ToolStripMenuItem";
             this.打开项目ToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
             this.打开项目ToolStripMenuItem.Text = "打开项目";
-            this.打开项目ToolStripMenuItem.Click += new System.EventHandler(this.打开项目ToolStripMenuItem_Click);
+            this.打开项目ToolStripMenuItem.Click += new System.EventHandler(this.OpenProjectToolStripMenuItem_Click);
             // 
             // JsonEditor
             // 
@@ -459,7 +459,7 @@ namespace JsonShow
         private System.Windows.Forms.Label Json;
         private System.Windows.Forms.ToolStripMenuItem ClealCaches;
         private System.Windows.Forms.ToolStripMenuItem OpenCachesFolder;
-        private System.Windows.Forms.ToolStripMenuItem 自动保存ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem AutoSaveHook;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem DeleteJsonFiles;
         private System.Windows.Forms.ToolStripMenuItem DeleteFilesfromList;

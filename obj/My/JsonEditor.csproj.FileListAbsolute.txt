@@ -22,4 +22,3 @@ C:\JsonEditor\obj\My\JsonEditor.csproj.GenerateResource.cache
 C:\JsonEditor\obj\My\JsonEditor.csproj.CoreCompileInputs.cache
 C:\JsonEditor\obj\My\JsonEditor.csproj.CopyComplete
 C:\JsonEditor\obj\My\JsonEditor.exe
-C:\JsonEditor\obj\My\JsonEditor.csproj.AssemblyReference.cache

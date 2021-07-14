@@ -92,9 +92,39 @@ namespace JsonShow
         /// <returns></returns>
         public static string Format(string json)
         {
+            Debug.WriteLine("要格式化的字符串:  "+json);
+          
+           string fjson= ConvertJsonString(json);
+           Debug.WriteLine("格式化:  " + fjson);
+            return fjson;
+            ////格式化json字符串
+            //JsonSerializer serializer = new JsonSerializer();
+            //TextReader tr = new StringReader(json);
+            //JsonTextReader jtr = new JsonTextReader(tr);
+            //object obj = serializer.Deserialize(jtr);
+            //if (obj != null)
+            //{
+            //    StringWriter textWriter = new StringWriter();
+            //    JsonTextWriter jsonWriter = new JsonTextWriter(textWriter)
+            //    {
+            //        Formatting = Formatting.Indented,
+            //        Indentation = 4,
+            //        IndentChar = ' '
+            //    };
+            //    serializer.Serialize(jsonWriter, obj);
+            //    return textWriter.ToString();
+            //}
+            //else
+            //{
+            //    return json;
+            //}
+        }
+
+        private static string ConvertJsonString(string str)
+        {
             //格式化json字符串
             JsonSerializer serializer = new JsonSerializer();
-            TextReader tr = new StringReader(json);
+            TextReader tr = new StringReader(str);
             JsonTextReader jtr = new JsonTextReader(tr);
             object obj = serializer.Deserialize(jtr);
             if (obj != null)
@@ -111,9 +141,11 @@ namespace JsonShow
             }
             else
             {
-                return json;
+                return str;
             }
         }
+
+
 
         /// <summary>
         /// Serializes to file. 从第二行开始，第二列
@@ -160,7 +192,7 @@ namespace JsonShow
                 //处理Dic文件为Jobject，
                 JObject strJObject = JsonTools.SerializeToJobject(conbineValue);
                 //序列化
-                string jstr = JsonConvert.SerializeObject(strJObject);
+                string jstr = JsonConvert.SerializeObject(strJObject, Formatting.Indented);
                 //格式化
                 string fJsonString = JsonTools.Format(jstr);
                 string path = savePath[pathIndex];
@@ -239,7 +271,7 @@ namespace JsonShow
             //处理Dic文件为Jobject，
             JObject strJObject = JsonTools.SerializeToJobject(conbineValue);
             //序列化
-            string jstr = JsonConvert.SerializeObject(strJObject);
+            string jstr = JsonConvert.SerializeObject(strJObject, Formatting.Indented);
             //格式化
             string fJsonString = Format(jstr);
             Debug.WriteLine(fJsonString);
@@ -250,14 +282,21 @@ namespace JsonShow
         public static string SerializeToString(Dictionary<string, string> source, params string[] skipKeys)
         {
             var jobject = SerializeToJobject(source, skipKeys);
-            string json = JsonConvert.SerializeObject(jobject);
+            string json = JsonConvert.SerializeObject(jobject, Formatting.Indented);
             return json;
         }
 
         public static string SerializeToString<T, N>(IDictionary<T, N> source, params string[] skipKeys)
         {
             var jobject = SerializeToJobject<T, N>(source, skipKeys);
-            string json = JsonConvert.SerializeObject(jobject);
+            string json = JsonConvert.SerializeObject(jobject,Formatting.Indented);
+            return json;
+        }
+
+        public static string SerializeToString<T>(T obj)
+        {
+       
+            string json = JsonConvert.SerializeObject(obj, Formatting.Indented);
             return json;
         }
 

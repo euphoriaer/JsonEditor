@@ -21,7 +21,7 @@ namespace JsonShow
 
         private bool autoForm = true;
 
-        private bool autoSave = false;
+        private bool autoSave = true;
 
         //Key:文件名name无后缀，Value:文件对象Fileinfo
         private Dictionary<string, FileInfo> cacheDic = new Dictionary<string, FileInfo>();
@@ -60,6 +60,7 @@ namespace JsonShow
             //设置文本风格
             SetFont();
             AutoFormHook.Checked = true;
+            AutoSaveHook.Checked = true;
             mainWorksheet = MainReoGrid.CurrentWorksheet;
         }
 
@@ -101,16 +102,14 @@ namespace JsonShow
             string sheetName = MainReoGrid.CurrentWorksheet.Cells[0, cell.Column].DisplayText;
             var sheet = CreatSheetWork(sheetName);
 
-            //var newForm = JsonTools.DeSerializeToForm(cellJson, newSheet, "_id","Path");
+           
             JsonTools.DeSerializeToForm(cellJson, sheet, skipKey);
             //设置文本风格
             SetFont(sheet);
             //设置自适应宽高
             AutoCellSize(sheet);
-
+            //添加单元格修改事件
             SheetChangedEventNewForm(sheet);
-
-            //todo 添加数据库同步
 
             //立即修改Rich,
             if (richTextBox != null)
@@ -249,15 +248,14 @@ namespace JsonShow
 
             var listSheet = CreatSheetMemory(tempListBox.SelectedItem.ToString());
             string json = File.ReadAllText(tempJsonFile.FullName);
-            mainWorksheet = JsonTools.DeSerializeToForm(json, listSheet, tempListBox.SelectedItem.ToString());
+            listSheet = JsonTools.DeSerializeToForm(json, listSheet, tempListBox.SelectedItem.ToString());
             //设置文本风格
             SetFont();
             //设置自适应宽高
-            AutoCellSize(mainWorksheet);
-            //添加单元格的同步
-            SheetChangedEventListBox(mainWorksheet);
-            ////添加数据库同步
-            //SheetChangedEventNewForm(mainWorksheet);
+            AutoCellSize(listSheet);
+            //添加单元格的数据同步
+            SheetChangedEventListBox(listSheet);
+        
             //立即修改Rich
             if (richTextBox != null)
             {
@@ -342,6 +340,12 @@ namespace JsonShow
             }
         }
 
+        private void OpenProjectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //todo 打开项目，将列表保存下来，
+            //直接读取列表与缓存（避免每次都要全选json文件），目前关闭后缓存不会被再读取（相当于删除），防止数据混乱
+        }
+
         private void richTextBox_TextChanged(object sender, EventArgs e)
         {
             if (!richTextBox.Focused)
@@ -359,18 +363,6 @@ namespace JsonShow
             Cache(tempJsonName, richTextBox.Text);
             //将富文本内容放到 form中
             RefreshForm(richTextBox.Text);
-
-            //自动保存
-            if (autoSave)
-            {
-                tempJsonName = ShowJsonList.SelectedItem.ToString(); //获取选择的json文件
-                //将修改的内容写进Json文件中。
-                File.WriteAllText(jsonDic[tempJsonName].FullName, richTextBox.Text);
-            }
-
-            //CacheAndSave(ShowJsonList.SelectedItem.ToString());
-
-            //设置自适应宽高
             AutoCellSize(mainWorksheet);
         }
 
@@ -448,19 +440,6 @@ namespace JsonShow
         {
         }
 
-        private bool WorkExist(string sheetName)
-        {
-            var tempWork = MainReoGrid.Worksheets.Where(p => p.Name == sheetName);
-            if (tempWork.Count() == 0)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
         #endregion EditorItem
 
         #region Function
@@ -516,34 +495,8 @@ namespace JsonShow
                 FileInfo cacheFile = new FileInfo(tempCacheJsonPath);
                 cacheDic.Add(cacheName, cacheFile);
             }
-        }
 
-        private void CacheAndSave(string name)
-        {
-            if (CheckValidity())
-            {
-                return;
-            }
-
-            string tempJsonName;
-            tempJsonName = ShowJsonList.SelectedItem.ToString();
-            //将富文本修改的内容存到缓存里，点击保存才存到Json中
-            Cache(tempJsonName, richTextBox.Text);
-            RefreshForm(richTextBox.Text);
-            ////添加richTextBox同步
-            //SheetChangedEventListBox(mainWorksheet);
-            //自动保存
-            if (autoSave)
-            {
-                tempJsonName = ShowJsonList.SelectedItem.ToString(); //获取选择的json文件
-                //将修改的内容写进Json文件中。
-                File.WriteAllText(jsonDic[tempJsonName].FullName, richTextBox.Text);
-            }
-            //AutoSaveInFile();
-        }
-
-        private void CacheJsonFile(string cacheName, string cacheContent)
-        {
+            AutoSaveCache();
         }
 
         private bool CheckValidity()
@@ -583,7 +536,9 @@ namespace JsonShow
             BsonDocument data = LiteDBTools.SearchFirst(cmd, cellColumnName, dbName);
 
             string json = LiteDB.JsonSerializer.Serialize(data);
-            Debug.WriteLine(json);
+            //todo 格式化字符串
+            //string json2 = JsonTools.SerializeToString(json);
+            //Debug.WriteLine("读取的数据库文件："+json2);
             return json;
         }
 
@@ -681,62 +636,52 @@ namespace JsonShow
 
         private void SheetChangedEventListBox(Worksheet destinationWorksheet)
         {//点击listbox 从而生成的sheet 单元格，修改事件
+            
             destinationWorksheet.CellDataChanged += ((send, args) =>
             {
                 //string selectName = ShowJsonList.SelectedItem.ToString();
                 string json = JsonTools.SerializeToString(MainReoGrid.CurrentWorksheet);
                 Debug.WriteLine("RichBoxJson：" + json);
                 richTextBox.Text = json;
+                //写入缓存
                 Cache(ShowJsonList.SelectedItem.ToString(), json);
+                Debug.WriteLine("当前选择的SheetName：" + MainReoGrid.CurrentWorksheet.Name);
+                string collectName = MainReoGrid.CurrentWorksheet.Name.Split('_')[0];
+                Debug.WriteLine("集合名：" + collectName);
+                string name = MainReoGrid.CurrentWorksheet[1, 0].ToString();
+                UpDateDB(name, collectName, destinationWorksheet);
             });
         }
 
-      
         private void SheetChangedEventNewForm(Worksheet destinationWorksheet)
-        {//右键查看详情 从而生成的sheet 单元格，修改事件
-            string beforeCell = null;
-            string afterCell = null;
-            destinationWorksheet.BeforeCellEdit += (s, arg) =>
-            {
-                var pos = MainReoGrid.CurrentWorksheet.FocusPos;
-                beforeCell = MainReoGrid.CurrentWorksheet[pos].ToString();
-                Debug.WriteLine("修改前的Cell内容:  " + beforeCell);
-            };
-
+        {   //右键查看详情 从而生成的sheet 单元格，修改事件
             destinationWorksheet.CellDataChanged += ((send, args) =>
             {
-                string selectName = ShowJsonList.SelectedItem.ToString();
+                
                 string afterAllJson = JsonTools.SerializeToString(MainReoGrid.CurrentWorksheet);
-                Debug.WriteLine("afterAllJson：" + afterAllJson);
+                Debug.WriteLine("afterJson：" + afterAllJson);
                 richTextBox.Text = afterAllJson;
 
                 // 获取修改目标的Bson 第二行第一列为 Name
                 string name = MainReoGrid.CurrentWorksheet[1, 0].ToString();
-                string cmd = string.Format("$.Name = '{0}'", name);
+
                 //根据当前的sheetName 获取集合名
                 string collect = MainReoGrid.CurrentWorksheet.Name.Split('_')[0];
-                BsonDocument beforeBson = LiteDBTools.SearchFirst(cmd, collect, dbName);
-                BsonDocument afterBson = new BsonDocument();
-                //修改,获取修改的内容
-                var pos = MainReoGrid.CurrentWorksheet.FocusPos;
-                string cell = MainReoGrid.CurrentWorksheet[pos].ToString();
-                afterCell = cell;
-                foreach (var bsonEntity in beforeBson)
+                //更新数据库
+                BsonDocument newBson = null;
+                try
                 {
-                    if (bsonEntity.Value == beforeCell)
-                    {
-                        afterBson.Add(bsonEntity.Key, afterCell);
-                        Debug.WriteLine("数据库修改的内容: " + bsonEntity.Key + " : " + afterCell);
-                    }
-                    else
-                    {
-                        afterBson.Add(bsonEntity.Key, bsonEntity.Value);
-                    }
+                    //Error 超出索引？
+                    newBson = UpDateDB(name, collect, destinationWorksheet);
                 }
-                LiteDBTools.Update(afterBson, collect, dbName);
-                Debug.WriteLine("数据库 更新完成: ");
+                catch (Exception e)
+                {
+                   
+                    return;
+                }
+
                 //数据库内容写入缓存
-                string afterJson = JsonSerializer.Serialize(afterBson);
+                string afterJson = JsonSerializer.Serialize(newBson);
                 var afterDic = JsonTools.DeSerializeToDictionary(afterJson);
                 string afterJsonPath = afterDic["Path"];
                 string cacheJson = JsonTools.SerializeToString(afterDic, skipKey);
@@ -766,12 +711,38 @@ namespace JsonShow
             }
         }
 
-        #endregion Function
-
-        private void 打开项目ToolStripMenuItem_Click(object sender, EventArgs e)
+        private BsonDocument UpDateDB(string name, string collectName,Worksheet sheet )
         {
-            //todo 打开项目，将列表保存下来，
-            //直接读取列表与缓存（避免每次都要全选json文件），目前关闭后缓存不会被再读取（相当于删除），防止数据混乱
+            string cmd = string.Format("$.Name = '{0}'", name);
+            
+            //找到Bson数据，赋值新的
+            BsonDocument beforeBson = LiteDBTools.SearchFirst(cmd, collectName, dbName);
+            BsonDocument newBson = new BsonDocument();
+            var pos = sheet.FocusPos;
+            var cell = sheet[pos];
+            CellPosition cellPos = new CellPosition(pos.Row - 1, pos.Col);
+
+            string key = MainReoGrid.CurrentWorksheet[cellPos].ToString();
+            
+            foreach (var bsonEntity in beforeBson)
+            {
+                if (bsonEntity.Key == key)
+                {
+                    newBson.Add(bsonEntity.Key, cell.ToString());
+                }
+                else
+                {
+                    newBson.Add(bsonEntity);
+                }
+            }
+
+            //更新数据库
+            LiteDBTools.Update(newBson, collectName, dbName);
+            Debug.WriteLine("数据库 更新完成: ");
+       
+            return newBson;
         }
+
+        #endregion Function
     }
 }
