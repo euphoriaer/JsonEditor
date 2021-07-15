@@ -1,12 +1,12 @@
 ﻿using JsonShow.Scripts.Tools;
 using LiteDB;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using Newtonsoft.Json;
 using unvell.ReoGrid;
 using JsonSerializer = LiteDB.JsonSerializer;
 
@@ -29,9 +29,8 @@ namespace JsonShow
 
         private string cachePath = Application.StartupPath + @"\Cache\";
         private string dbName = "json.db";
-        private string porjectName = "Default";
         private Worksheet mainWorksheet;
-
+        private string porjectName = "Default.project";
         private bool richOpen = false;
         private RichTextBox richTextBox;
         private Dictionary<string, FileInfo> searDic = new Dictionary<string, FileInfo>();
@@ -39,7 +38,7 @@ namespace JsonShow
         public JsonEditor()
         {
             InitializeComponent();
-            OnceLoad();
+            DefaultOnceLoad();
             this.FormClosing += CloseForm;
             ShowJsonList.MouseClick += (e, se) =>
             {
@@ -69,6 +68,7 @@ namespace JsonShow
 
         private void ExpertJsonToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            //todo 导出时，递归查找所有相关表，按父子关系全部导出，使用无实体导出
             bool isOk;
             string savePath = DialogTools.SaveFile(out isOk);
             if (!isOk)
@@ -90,6 +90,41 @@ namespace JsonShow
             Debug.WriteLine("expertJson:  " + expertJson);
 
             File.WriteAllText(savePath, expertJson);
+        }
+
+        private void SortList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (SortList.SelectedItem == null)
+            {
+                return;
+            }
+            string searchPrefix = SortList.SelectedItem.ToString();
+
+            searDic.Clear();
+            ShowJsonList.ClearSelected();
+            if (String.IsNullOrEmpty(searchPrefix))
+            {
+                ShowAllJson();
+                return;
+            }
+
+            string[] itemNames = SearchAllByPrefix(searchPrefix);
+            foreach (var itemName in itemNames)
+            {
+                if (!searDic.ContainsKey(itemName))
+                {
+                    searDic.Add(itemName, jsonDic[itemName]);
+                }
+            }
+
+            //清空列表 重新添加
+            richTextBox.Text = "";
+            ShowJsonList.Items.Clear();
+            foreach (var SearDictionaryKey in searDic.Keys)
+            {
+                ShowJsonList.Sorted = true;
+                ShowJsonList.Items.Add(SearDictionaryKey);
+            }
         }
 
         #region EditorItem
@@ -166,6 +201,7 @@ namespace JsonShow
             ShowJsonList.Items.Clear();
             jsonDic.Clear();
             cacheDic.Clear();
+            SortList.Items.Clear();
         }
 
         private Worksheet CreatSheetWork(string sheetName)
@@ -369,7 +405,28 @@ namespace JsonShow
 
         private void OpenProjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //todo 打开项目，将列表保存下来，
+
+            bool isOk = false;
+            string[] projectfiles= DialogTools.OpenFiles(out isOk, "project文件|*.project|全部|*.*");
+            if (!isOk)
+            {
+                return;
+            }
+            ClearJsonLists_ItemClicked(sender,e);
+            string json = File.ReadAllText(projectfiles[0]);
+            Project projectObj = JsonConvert.DeserializeObject<Project>(json);
+            foreach (var entity in projectObj.showJsonList)
+            {
+               
+                jsonDic.Add(entity.Key, entity.Value);
+            }
+
+            foreach (var item in projectObj.sortList)
+            {
+                SortList.Items.Add(item);
+            }
+            Debug.WriteLine("载入数据完成");
+
             //直接读取列表与缓存（避免每次都要全选json文件），目前关闭后缓存不会被再读取（相当于删除），防止数据混乱
         }
 
@@ -583,11 +640,11 @@ namespace JsonShow
             return json;
         }
 
-        private void OnceLoad()
+        private void DefaultOnceLoad()
         {
             Debug.WriteLine("打开窗体，载入数据");
             Project project = new Project();
-            if (!File.Exists(project.defaultSavePath+ porjectName))
+            if (!File.Exists(project.defaultSavePath + porjectName))
             {
                 return;
             }
@@ -601,7 +658,6 @@ namespace JsonShow
             {
                 jsonDic.Add(entity.Key, entity.Value);
             }
-
 
             foreach (var item in projectObj.sortList)
             {
@@ -824,41 +880,6 @@ namespace JsonShow
         }
 
         #endregion Function
-
-        private void SortList_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (SortList.SelectedItem == null)
-            {
-                return;
-            }
-            string searchPrefix = SortList.SelectedItem.ToString();
-
-            searDic.Clear();
-            ShowJsonList.ClearSelected();
-            if (String.IsNullOrEmpty(searchPrefix))
-            {
-                ShowAllJson();
-                return;
-            }
-
-            string[] itemNames = SearchAllByPrefix(searchPrefix);
-            foreach (var itemName in itemNames)
-            {
-                if (!searDic.ContainsKey(itemName))
-                {
-                    searDic.Add(itemName, jsonDic[itemName]);
-                }
-            }
-
-            //清空列表 重新添加
-            richTextBox.Text = "";
-            ShowJsonList.Items.Clear();
-            foreach (var SearDictionaryKey in searDic.Keys)
-            {
-                ShowJsonList.Sorted = true;
-                ShowJsonList.Items.Add(SearDictionaryKey);
-            }
-        }
     }
 
     public class stringList
