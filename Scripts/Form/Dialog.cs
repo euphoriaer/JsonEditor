@@ -5,7 +5,6 @@ namespace JsonShow
 {
     public partial class Dialog : Form
     {
-        public SerializeJsonForm serializeName;
         public string content = "";
 
         public Dialog()

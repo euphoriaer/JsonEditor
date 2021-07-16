@@ -16,7 +16,6 @@ C:\JsonEditor\bin\My\unvell.ReoGrid.xml
 C:\JsonEditor\obj\My\JsonShow.JsonEditor.resources
 C:\JsonEditor\obj\My\JsonShow.Properties.Resources.resources
 C:\JsonEditor\obj\My\JsonShow.Rich.resources
-C:\JsonEditor\obj\My\JsonShow.SerializeJsonForm.resources
 C:\JsonEditor\obj\My\JsonShow.Dialog.resources
 C:\JsonEditor\obj\My\JsonEditor.csproj.GenerateResource.cache
 C:\JsonEditor\obj\My\JsonEditor.csproj.CoreCompileInputs.cache

@@ -14,6 +14,8 @@ namespace JsonShow
 {
     public partial class JsonEditor : Form
     {
+        #region Attribute
+
         public Dictionary<string, FileInfo> jsonDic = new Dictionary<string, FileInfo>();
 
         public string[] skipKey = new[] { "_id", "Path" };
@@ -22,43 +24,38 @@ namespace JsonShow
 
         private bool autoForm = true;
 
+        private bool AutoMainEditor = true;
         private bool autoSave = true;
 
-        //Key:文件名name无后缀，Value:文件对象Fileinfo
-        private Dictionary<string, FileInfo> cacheDic = new Dictionary<string, FileInfo>();
-
         private string cachePath = Application.StartupPath + @"\Cache\";
+
         private string dbName = "json.db";
+
         private Worksheet mainWorksheet;
+
         private string porjectName = "Default.project";
+
         private bool richOpen = false;
-        private RichTextBox richTextBox;
+
+        private TreeNode root;
+
+        //Key:文件名name无后缀，Value:文件对象Fileinfo
         private Dictionary<string, FileInfo> searDic = new Dictionary<string, FileInfo>();
+
+        #endregion Attribute
+
+        #region EditorItem
+
+        private List<TreeNode> nodeList = new List<TreeNode>();
 
         public JsonEditor()
         {
             InitializeComponent();
             DefaultOnceLoad();
+
+            TreeViewInit();
             this.FormClosing += CloseForm;
-            ShowJsonList.MouseClick += (e, se) =>
-            {
-                //todo  C# listbox 单击空白区检测
-
-                //if (ShowJsonList.SelectedItems.Count <= 0) //这这判断是否点了空白区，点了空白区进到if里
-                //    MessageBox.Show("选种items");
-
-                var index = ShowJsonList.IndexFromPoint(se.X, se.Y);
-                ShowJsonList.SelectedIndex = index;
-                if (index == -1)
-                {
-                    Debug.WriteLine("C# listbox 单击空白区检测:  " + index);
-                }
-                else
-                {
-                    richTextBox.ReadOnly = false;
-                }
-            };
-            richTextBox = JsonEditorRich;
+            AutoAddEditorToolStripMenuItem.Checked = true;
             //设置文本风格
             SetFont();
             AutoFormHook.Checked = true;
@@ -66,68 +63,11 @@ namespace JsonShow
             mainWorksheet = MainReoGrid.CurrentWorksheet;
         }
 
-        private void ExpertJsonToolStripMenuItem_Click(object sender, EventArgs e)
+        private void AutoAddEditorToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //todo 导出时，递归查找所有相关表，按父子关系全部导出，使用无实体导出
-            bool isOk;
-            string savePath = DialogTools.SaveFile(out isOk);
-            if (!isOk)
-            {
-                return;
-            }
-            string prefix = SortList.SelectedItem.ToString();
-            var jsonNames = ShowJsonList.Items;
-            stringList stringList = new stringList();
-            foreach (var jsonName in jsonNames)
-            {
-                FileInfo jsonFileInfo = jsonDic[jsonName as string];
-                string json = File.ReadAllText(jsonFileInfo.FullName);
-                object jObject = JsonTools.DeSerializeToObject(json);
-                stringList.content.Add(jObject);
-            }
-
-            string expertJson = JsonTools.SerializeToString(stringList);
-            Debug.WriteLine("expertJson:  " + expertJson);
-
-            File.WriteAllText(savePath, expertJson);
+            (sender as ToolStripMenuItem).Checked = !(sender as ToolStripMenuItem).Checked;
+            AutoMainEditor = (sender as ToolStripMenuItem).Checked;
         }
-
-        private void SortList_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (SortList.SelectedItem == null)
-            {
-                return;
-            }
-            string searchPrefix = SortList.SelectedItem.ToString();
-
-            searDic.Clear();
-            ShowJsonList.ClearSelected();
-            if (String.IsNullOrEmpty(searchPrefix))
-            {
-                ShowAllJson();
-                return;
-            }
-
-            string[] itemNames = SearchAllByPrefix(searchPrefix);
-            foreach (var itemName in itemNames)
-            {
-                if (!searDic.ContainsKey(itemName))
-                {
-                    searDic.Add(itemName, jsonDic[itemName]);
-                }
-            }
-
-            //清空列表 重新添加
-            richTextBox.Text = "";
-            ShowJsonList.Items.Clear();
-            foreach (var SearDictionaryKey in searDic.Keys)
-            {
-                ShowJsonList.Sorted = true;
-                ShowJsonList.Items.Add(SearDictionaryKey);
-            }
-        }
-
-        #region EditorItem
 
         private void AutoCellSize_MenuItem_Click(object sender, EventArgs e)
         {
@@ -172,36 +112,154 @@ namespace JsonShow
             AutoCellSize(sheet);
             //添加单元格修改事件
             SheetChangedEventNewForm(sheet);
+        }
 
-            //立即修改Rich,
-            if (richTextBox != null)
+        private void ChangeColumnToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var column = new Dialog();
+            var isOK = column.ShowDialog();
+            if (isOK == DialogResult.OK)
             {
-                string tempFormat = JsonTools.Format(cellJson);
-                richTextBox.Text = tempFormat;
+                MainReoGrid.CurrentWorksheet.ColumnCount = int.Parse(column.content);
             }
+        }
 
-            richTextBox.ReadOnly = true;
+        private void ChangeRowToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var rowNumber = new Dialog();
+            var isOK = rowNumber.ShowDialog();
+            if (isOK == DialogResult.OK)
+            {
+                MainReoGrid.CurrentWorksheet.RowCount = int.Parse(rowNumber.content);
+            }
         }
 
         private void ClearCache_ItemClicked(object sender, EventArgs e)
         {
-            DirectoryInfo tempDirectoryInfo = new DirectoryInfo(cachePath);
-            FileInfo[] cacheJson = tempDirectoryInfo.GetFiles();
-            foreach (var fileInfo in cacheJson)
-            {
-                fileInfo.Delete();
-            }
-
-            cacheDic.Clear();
+            //DirectoryInfo tempDirectoryInfo = new DirectoryInfo(cachePath);
+            //FileInfo[] cacheJson = tempDirectoryInfo.GetFiles();
+            //foreach (var fileInfo in cacheJson)
+            //{
+            //    fileInfo.Delete();
+            //}
         }
 
         private void ClearJsonLists_ItemClicked(object sender, EventArgs e)
         {
-            richTextBox.Text = "";
-            ShowJsonList.Items.Clear();
             jsonDic.Clear();
-            cacheDic.Clear();
-            SortList.Items.Clear();
+        }
+
+        /// <summary>
+        /// 根据路径创建节点，路径不存在则创建
+        /// </summary>
+        /// <param name="fullpath">The fullpath</param>
+        private void CreateChildNodeByPath(TreeNode parent, string fullpath)
+        {
+            if (string.IsNullOrEmpty(fullpath) || fullpath == "_")
+            {
+                return;//递归结束
+            }
+            string[] names = fullpath.Split('_');
+
+            //查找当前层级是否存在同名节点
+            TreeNode currentNode = null;
+            foreach (TreeNode parentNode in parent.Nodes)
+            {
+                if (parentNode.Text == names[0])
+                {
+                    currentNode = parentNode;
+                }
+            }
+            if (currentNode != null)
+            {
+                //存在,修改字符串,进入下一级
+                int startName = 1;
+                string newFullPath = "";
+                for (int i = startName; i < names.Length; i++)
+                {
+                    newFullPath += names[i] + @"_";
+                }
+
+                CreateChildNodeByPath(currentNode, newFullPath);
+            }
+            else
+            {
+                //不存在，创建，
+                TreeNode newNode = new TreeNode();
+                newNode.Text = names[0];
+                parent.Nodes.Add(newNode);
+                //修改字符串，进入下一级
+                int startName = 1;
+                string newFullPath = "";
+                for (int i = startName; i < names.Length; i++)
+                {
+                    newFullPath += names[i] + @"_";
+                }
+                CreateChildNodeByPath(newNode, newFullPath);
+            }
+        }
+
+        private void CreatJsonByRowToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //Error 使用选择文件夹
+            var worksheets = MainReoGrid.Worksheets;
+            bool OnceDB = true;
+            bool isOK = false;
+            string path = DialogTools.ChooseFolder(out isOK);
+
+           // string pathAndName = DialogTools.SaveFile(out isOK);
+            if (!isOK)
+            {
+                return;
+            }
+            string jsonDirs = path;
+
+            foreach (var worksheet in worksheets)
+            {
+                //获取第一列，作为文件名
+                int column = 0;
+                List<string> jsonPaths = new List<string>();
+
+                string collectName = null;
+                for (int row = 1; row < worksheet.RowCount; row++)
+                {
+                    if (worksheet[row, column] == null)
+                    {
+                        break;
+                    }
+                    string fileName = worksheet[row, column].ToString();
+                    string jsonPath = jsonDirs + @"\" + fileName + ".json";
+                    jsonPaths.Add(jsonPath);
+                    if (AutoMainEditor && !jsonDic.ContainsKey(fileName))
+                    {
+                        FileInfo json = new FileInfo(jsonPath);
+                        jsonDic.Add(fileName, json);
+                    }
+                    //设置集合名
+                    collectName = fileName.Split('_')[0];
+                }
+
+                //序列化为文件  不带_ID与FilePath
+                FileInfo[] jsons = JsonTools.SerializeToFile(worksheet, jsonPaths.ToArray());
+
+                //添加到数据库
+                string dbName = "json.db";
+                foreach (string jsonPath in jsonPaths)
+                {
+                    if (OnceDB == true)//是第一次就创建，不是就插入
+                    {
+                        //第一次要确定索引
+                        CreatDbByJsson(jsonPath, dbName, collectName);
+                        OnceDB = false;
+                    }
+                    else
+                    {
+                        InsertDB(jsonPath, dbName, collectName);
+                    }
+                }
+            }
+            TreeViewInit();
+            DialogTools.OpenExplorer(jsonDirs);
         }
 
         private Worksheet CreatSheetWork(string sheetName)
@@ -221,61 +279,30 @@ namespace JsonShow
             return tempWork.First();
         }
 
-        private void DeleteFilesfromList_Click(object sender, EventArgs e)
+        private void ExpertJsonToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var tempJsonObjs = ShowJsonList.SelectedItems;
-            foreach (var tempJsonObj in tempJsonObjs)
-            {
-                string tempName = tempJsonObj as string;
-                Debug.WriteLine(tempName);
-                jsonDic.Remove(tempName);
-                cacheDic.Remove(tempName);
-            }
+            //todo 导出时，递归查找所有相关表，按父子关系全部导出，使用无实体导出
+            //bool isOk;
+            //string savePath = DialogTools.SaveFile(out isOk);
+            //if (!isOk)
+            //{
+            //    return;
+            //}
+            //string prefix = SortList.SelectedItem.ToString();
+            //var jsonNames = ShowJsonList.Items;
+            //stringList stringList = new stringList();
+            //foreach (var jsonName in jsonNames)
+            //{
+            //    FileInfo jsonFileInfo = jsonDic[jsonName as string];
+            //    string json = File.ReadAllText(jsonFileInfo.FullName);
+            //    object jObject = JsonTools.DeSerializeToObject(json);
+            //    stringList.content.Add(jObject);
+            //}
 
-            RefreshListBox();
-        }
+            //string expertJson = JsonTools.SerializeToString(stringList);
+            //Debug.WriteLine("expertJson:  " + expertJson);
 
-        private void DeleteJsonFiles_Click(object sender, EventArgs e)
-        {
-            var tempJsonObjs = ShowJsonList.SelectedItems;
-            foreach (var jsonObj in tempJsonObjs)
-            {
-                string tempName = jsonObj as string;
-                Debug.WriteLine(tempName);
-                Debug.WriteLine(jsonDic[tempName].FullName);
-                File.Delete(jsonDic[tempName].FullName);
-                jsonDic.Remove(tempName);
-                cacheDic.Remove(tempName);
-            }
-
-            RefreshListBox();
-        }
-
-        private void JsonContentEditorToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (richOpen)
-            {
-                return;
-            }
-            Debug.WriteLine("OpenRich");
-            var rich = new Rich();
-            rich.Show();
-            rich.Content.TextChanged += richTextBox_TextChanged;
-            rich.Shown += (m, n) =>
-            {
-                richOpen = true;
-            };
-            rich.Closed += (obj, ev) =>
-            {
-                richOpen = false;
-                return;
-            };
-            richTextBox = rich.Content;
-        }
-
-        private void JsonCreateEditorToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            new SerializeJsonForm(this).Show(this);
+            //File.WriteAllText(savePath, expertJson);
         }
 
         private void JsonEditorLoad(object sender, EventArgs e)
@@ -288,42 +315,6 @@ namespace JsonShow
                     SearchButton_Click(sender, e);
                 }
             });
-        }
-
-        private void JsonShowList_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            FileInfo tempJsonFile;
-            ListBox tempListBox = sender as ListBox;
-            if (tempListBox.SelectedItem == null)
-            {
-                return;
-            }
-
-            //如果缓存里有，就展示缓存内容
-            if (cacheDic.ContainsKey(tempListBox.SelectedItem.ToString()))
-            {
-                tempJsonFile = cacheDic[tempListBox.SelectedItem.ToString()];
-            }
-            else
-            {
-                tempJsonFile = jsonDic[tempListBox.SelectedItem.ToString()];
-            }
-
-            var listSheet = CreatSheetMemory(tempListBox.SelectedItem.ToString());
-            string json = File.ReadAllText(tempJsonFile.FullName);
-            listSheet = JsonTools.DeSerializeToForm(json, listSheet, tempListBox.SelectedItem.ToString());
-            //设置文本风格
-            SetFont();
-            //设置自适应宽高
-            AutoCellSize(listSheet);
-            //添加单元格的数据同步
-            SheetChangedEventListBox(listSheet);
-
-            //立即修改Rich
-            if (richTextBox != null)
-            {
-                richTextBox.Text = File.ReadAllText(tempJsonFile.FullName);
-            }
         }
 
         private void label1_Click(object sender, EventArgs e)
@@ -341,6 +332,7 @@ namespace JsonShow
 
         private void OpenCacheFolder_Clicked(object sender, EventArgs e)
         {
+            //todo 生成缓存
             DialogTools.OpenExplorer(cachePath);
         }
 
@@ -363,16 +355,15 @@ namespace JsonShow
                     if (jsonDic.ContainsKey(tempJsonName) == false)
                     {
                         jsonDic.Add(tempJsonName, tempJsonfile);
-                        ShowJsonList.Items.Add(tempJsonName);
                     }
                 }
             }
         }
 
-        private void OpenJsonFileInExplore_Click(object sender, EventArgs e)
+        private void OpenJsonFileInExplore_Click(string name)
         {
             System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo("Explorer.exe");
-            string tempJsonPath = jsonDic[ShowJsonList.SelectedItem.ToString()].FullName;
+            string tempJsonPath = jsonDic[name].FullName;
             psi.Arguments = "/e,/select," + tempJsonPath;
             System.Diagnostics.Process.Start(psi);
         }
@@ -385,7 +376,7 @@ namespace JsonShow
         private void OpenJsonFolde_Click(object sender, EventArgs e)
         {
             bool isOK;
-            string path = DialogTools.OpenFolder(out isOK);
+            string path = DialogTools.ChooseFolder(out isOK);
             if (isOK == false)
             {
                 return;
@@ -397,7 +388,6 @@ namespace JsonShow
                 string tempJsonName = Path.GetFileNameWithoutExtension(jsonFile.Name);
                 if (jsonDic.ContainsKey(tempJsonName) == false)
                 {
-                    ShowJsonList.Items.Add(tempJsonName);
                     jsonDic.Add(tempJsonName, jsonFile);
                 }
             }
@@ -405,95 +395,70 @@ namespace JsonShow
 
         private void OpenProjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
             bool isOk = false;
-            string[] projectfiles= DialogTools.OpenFiles(out isOk, "project文件|*.project|全部|*.*");
+            string[] projectfiles = DialogTools.OpenFiles(out isOk, "project文件|*.project|全部|*.*");
             if (!isOk)
             {
                 return;
             }
-            ClearJsonLists_ItemClicked(sender,e);
+            ClearJsonLists_ItemClicked(sender, e);
             string json = File.ReadAllText(projectfiles[0]);
             Project projectObj = JsonConvert.DeserializeObject<Project>(json);
             foreach (var entity in projectObj.showJsonList)
             {
-               
                 jsonDic.Add(entity.Key, entity.Value);
             }
 
-            foreach (var item in projectObj.sortList)
-            {
-                SortList.Items.Add(item);
-            }
             Debug.WriteLine("载入数据完成");
-
+            //todo  所有数据初始化提取出来，form加载与打开项目时使用
+            TreeViewInit();
             //直接读取列表与缓存（避免每次都要全选json文件），目前关闭后缓存不会被再读取（相当于删除），防止数据混乱
         }
 
-        private void richTextBox_TextChanged(object sender, EventArgs e)
-        {
-            if (!richTextBox.Focused)
-            {
-                return;
-            }
-            if (CheckValidity())
-            {
-                return;
-            }
-
-            string tempJsonName;
-            tempJsonName = ShowJsonList.SelectedItem.ToString();
-            //将富文本修改的内容存到缓存里，点击保存才存到Json中
-            Cache(tempJsonName, richTextBox.Text);
-            //将富文本内容放到 form中
-            RefreshForm(richTextBox.Text);
-            AutoCellSize(mainWorksheet);
-        }
-
         private void SaveAllJsons(object sender, EventArgs e)
-        {
-            try
-            {
-                foreach (var cacheDicKey in cacheDic.Keys)
-                {
-                    string tempContent = File.ReadAllText(cacheDic[cacheDicKey].FullName);
-                    File.WriteAllText(jsonDic[cacheDicKey].FullName, tempContent);
-                }
+        {//todo 重做保存所有
+            //try
+            //{
+            //    foreach (var cacheDicKey in cacheDic.Keys)
+            //    {
+            //        string tempContent = File.ReadAllText(cacheDic[cacheDicKey].FullName);
+            //        File.WriteAllText(jsonDic[cacheDicKey].FullName, tempContent);
+            //    }
 
-                EditorState.Text = "已保存";
-            }
-            catch (Exception exception)
-            {
-            }
+            //    EditorState.Text = "已保存";
+            //}
+            //catch (Exception exception)
+            //{
+            //}
         }
 
         private void SaveJson(object sender, EventArgs e)
         {
-            try
-            {
-                string tempJsonName = ShowJsonList.SelectedItem.ToString();
-                FileInfo tempJsonFile = jsonDic[tempJsonName];
-                //如果缓存存在，将缓存内容保存到Json
-                if (cacheDic.ContainsKey(tempJsonName))
-                {
-                    string tempCacheText = File.ReadAllText(cacheDic[tempJsonName].FullName);
-                    File.WriteAllText(tempJsonFile.FullName, tempCacheText);
-                    EditorState.Text = "缓存内容已写入：" + tempJsonFile.FullName;
-                    return;
-                }
+            //todo 针对树结构重做
+            //try
+            //{
+            //    string tempJsonName = ShowJsonList.SelectedItem.ToString();
+            //    FileInfo tempJsonFile = jsonDic[tempJsonName];
+            //    如果缓存存在，将缓存内容保存到Json
+            //    if (cacheDic.ContainsKey(tempJsonName))
+            //    {
+            //        string tempCacheText = File.ReadAllText(cacheDic[tempJsonName].FullName);
+            //        File.WriteAllText(tempJsonFile.FullName, tempCacheText);
+            //        EditorState.Text = "缓存内容已写入：" + tempJsonFile.FullName;
+            //        return;
+            //    }
 
-                File.WriteAllText(tempJsonFile.FullName, richTextBox.Text);
-                EditorState.Text = "未修改";
-            }
-            catch (Exception exception)
-            {
-            }
+            //    File.WriteAllText(tempJsonFile.FullName, richTextBox.Text);
+            //    EditorState.Text = "未修改";
+            //}
+            //catch (Exception exception)
+            //{
+            //}
         }
 
         private void SearchButton_Click(object sender, EventArgs e)
         {
             searDic.Clear();
-            ShowJsonList.ClearSelected();
             string searchTarget = SearchText.Text;
             if (String.IsNullOrEmpty(searchTarget))
             {
@@ -509,14 +474,23 @@ namespace JsonShow
                     searDic.Add(itemName, jsonDic[itemName]);
                 }
             }
+        }
 
-            //清空列表 重新添加
-            richTextBox.Text = "";
-            ShowJsonList.Items.Clear();
-            foreach (var SearDictionaryKey in searDic.Keys)
+        private void SerializeExcelToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
             {
-                ShowJsonList.Sorted = true;
-                ShowJsonList.Items.Add(SearDictionaryKey);
+                bool isOpen = false;
+                string[] paths = DialogTools.OpenFiles(out isOpen, "Excel文件|*.xlsx|全部|*.*");
+                if (isOpen == false)
+                {
+                    return;
+                }
+                MainReoGrid.Load(paths[0]);
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show("请关掉使用的Excel");
             }
         }
 
@@ -524,9 +498,49 @@ namespace JsonShow
         {
         }
 
+        private void SerializeJsonToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            bool isOpen = false;
+            string[] tempPaths = DialogTools.OpenFiles(out isOpen, "Josn文件|*.json|全部|*.*");
+            if (isOpen == false)
+            {
+                return;
+            }
+            string content = File.ReadAllText(tempPaths[0]);
+            var tempHt = JsonTools.DeSerializeToDictionary(content);
+            MainReoGrid.CurrentWorksheet = MainReoGrid.CreateWorksheet();
+            mainWorksheet = MainReoGrid.CurrentWorksheet;
+            int tempColumn = 0;
+            foreach (var dictionaryEntry in tempHt)
+            {
+                var rowOne = new CellPosition(0, tempColumn);//第一行
+                var rowTwo = new CellPosition(1, tempColumn);//第二行
+                mainWorksheet[rowOne] = dictionaryEntry.Key as string;
+                string m = dictionaryEntry.Value;
+                mainWorksheet[rowTwo] = m;
+                tempColumn++;
+            }
+        }
+
         #endregion EditorItem
 
         #region Function
+
+        private static void CreatDbByJsson(string jsonPath, string dbName, string assemble)
+        {
+            BsonDocument bson = new BsonDocument();
+            string jsonContent = File.ReadAllText(jsonPath);
+            var jsonDic = JsonTools.DeSerializeToDictionary(jsonContent);
+
+            foreach (var dicEntiy in jsonDic)
+            {
+                bson.Add(dicEntiy.Key, dicEntiy.Value);
+            }
+            //主动添加一条文件路径，方便之后数据库与实际文件的同步
+            bson.Add("Path", jsonPath);
+            string id = bson.Keys.ToList()[0].ToString();
+            LiteDBTools.Creat(dbName, assemble, bson, id);
+        }
 
         private void AutoCellSize(Worksheet worksheet)
         {
@@ -541,45 +555,30 @@ namespace JsonShow
 
         private void AutoSaveCache()
         {
-            if (!autoSave)
-            {
-                return;
-            }
-            foreach (var cacheEntity in cacheDic)
-            {
-                string cacheJson = File.ReadAllText(cacheEntity.Value.FullName);
-                string jsonPath = jsonDic[cacheEntity.Key].FullName;
-                File.WriteAllText(jsonPath, cacheJson);
-            }
+            //if (!autoSave)
+            //{
+            //    return;
+            //}
+            //foreach (var cacheEntity in cacheDic)
+            //{
+            //    string cacheJson = File.ReadAllText(cacheEntity.Value.FullName);
+            //    string jsonPath = jsonDic[cacheEntity.Key].FullName;
+            //    File.WriteAllText(jsonPath, cacheJson);
+            //}
         }
 
         private void Cache(string cacheName, string cacheContent)
         {
-            DirectoryInfo cacheDir = Directory.CreateDirectory(cachePath);
-            string tempCacheJsonPath = cacheDir.FullName + cacheName;
-            File.WriteAllText(tempCacheJsonPath, cacheContent);
-            if (!cacheDic.ContainsKey(cacheName)) //不存在就加入到缓存列表
-            {
-                FileInfo cacheFile = new FileInfo(tempCacheJsonPath);
-                cacheDic.Add(cacheName, cacheFile);
-            }
+            //DirectoryInfo cacheDir = Directory.CreateDirectory(cachePath);
+            //string tempCacheJsonPath = cacheDir.FullName + cacheName;
+            //File.WriteAllText(tempCacheJsonPath, cacheContent);
+            //if (!cacheDic.ContainsKey(cacheName)) //不存在就加入到缓存列表
+            //{
+            //    FileInfo cacheFile = new FileInfo(tempCacheJsonPath);
+            //    cacheDic.Add(cacheName, cacheFile);
+            //}
 
-            AutoSaveCache();
-        }
-
-        private bool CheckValidity()
-        {
-            if (string.IsNullOrEmpty(richTextBox.Text))
-            {
-                return true;
-            }
-
-            if (ShowJsonList.SelectedItem == null)
-            {
-                return true;
-            }
-
-            return false;
+            //AutoSaveCache();
         }
 
         private void CloseForm(object sender, FormClosingEventArgs e)
@@ -587,10 +586,6 @@ namespace JsonShow
             Debug.WriteLine("关闭窗体,保存项目");
             Project project = new Project();
             project.showJsonList = jsonDic;
-            foreach (var item in SortList.Items)
-            {
-                project.sortList.Add(item as string);
-            }
 
             project.SaveProject(porjectName);
             Debug.WriteLine("保存项目完成");
@@ -610,6 +605,59 @@ namespace JsonShow
                 MainReoGrid.CurrentWorksheet = tempWork.First();
             }
             return MainReoGrid.CurrentWorksheet;
+        }
+
+        private void DefaultOnceLoad()
+        {
+            Debug.WriteLine("打开窗体，载入数据");
+            Project project = new Project();
+            if (!File.Exists(project.defaultSavePath + porjectName))
+            {
+                return;
+            }
+            string json = project.OpenProject(porjectName);
+            if (string.IsNullOrEmpty(json))
+            {
+                return;
+            }
+            Project projectObj = JsonConvert.DeserializeObject<Project>(json);
+            foreach (var entity in projectObj.showJsonList)
+            {
+                jsonDic.Add(entity.Key, entity.Value);
+            }
+
+            Debug.WriteLine("载入数据完成");
+        }
+
+        private void FileDragDrop(object sender, DragEventArgs e)
+        {
+            try
+            {
+                String[] files = e.Data.GetData(DataFormats.FileDrop, false) as String[];
+                // Copy file from external application
+                foreach (string srcfile in files)
+                {
+                    MainReoGrid.Load(srcfile);
+
+                    return;
+                }
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show("请关掉使用的Excel");
+            }
+        }
+
+        private void FileDragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+            else
+            {
+                e.Effect = DragDropEffects.None;
+            }
         }
 
         private string GetCellContent(Cell cell)
@@ -640,66 +688,50 @@ namespace JsonShow
             return json;
         }
 
-        private void DefaultOnceLoad()
+        /// <summary>
+        /// 通过fullpath 查找treeview节点 节点name属性需要赋过值
+        /// </summary>
+        /// <param name="nodes">TreeNodeCollection node集合</param>
+        /// <param name="fullPath">要查找的节点的fullPath</param>
+        /// <returns></returns>
+        private TreeNode GetNode(TreeNodeCollection nodes, string fullPath)
         {
-            Debug.WriteLine("打开窗体，载入数据");
-            Project project = new Project();
-            if (!File.Exists(project.defaultSavePath + porjectName))
+            //todo 分隔符修改
+            string[] paths = fullPath.Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries);
+            TreeNode tn = null;
+            if (paths.Length > 0)
             {
-                return;
+                string lastPath = paths[paths.Length - 1];
+                var finds = nodes.Find(lastPath, true);
+                if (finds.Length > 0)
+                {
+                    foreach (var item in finds)
+                    {
+                        if (item.FullPath == fullPath)
+                        {
+                            tn = item;
+                            break;
+                        }
+                    }
+                }
             }
-            string json = project.OpenProject(porjectName);
-            if (string.IsNullOrEmpty(json))
-            {
-                return;
-            }
-            Project projectObj = JsonConvert.DeserializeObject<Project>(json);
-            foreach (var entity in projectObj.showJsonList)
-            {
-                jsonDic.Add(entity.Key, entity.Value);
-            }
-
-            foreach (var item in projectObj.sortList)
-            {
-                SortList.Items.Add(item);
-            }
-            Debug.WriteLine("载入数据完成");
+            return tn;
         }
 
-        private void RefreshForm(string cacheContent)
+        private void InsertDB(string path, string dbName, string assemble)
         {
-            try
-            {
-                //加到缓存后，表格重新读取 todo ? 为什么要重读表格 因为RichText修改，所以要重读
-                var listSheet = CreatSheetMemory(ShowJsonList.SelectedItem.ToString());
-                mainWorksheet = JsonTools.DeSerializeToForm(cacheContent, MainReoGrid.CurrentWorksheet,
-                    ShowJsonList.SelectedItem.ToString());
+            BsonDocument bson = new BsonDocument();
+            string jsonContent = File.ReadAllText(path);
+            var jsonDic = JsonTools.DeSerializeToDictionary(jsonContent);
 
-                //设置文本风格
-                SetFont();
-                //设置自适应宽高
-                AutoCellSize(mainWorksheet);
-
-                ////添加数据库同步
-                //SheetChangedEventNewForm(mainWorksheet);
-            }
-            catch (Exception e)
+            foreach (var dicEntiy in jsonDic)
             {
-                MessageBox.Show("Json文件结构被破坏,表格无法显示");
-                Console.WriteLine(e);
+                bson.Add(dicEntiy.Key, dicEntiy.Value);
             }
-        }
-
-        private void RefreshListBox()
-        {
-            //清空列表 重新添加
-            richTextBox.Text = "";
-            ShowJsonList.Items.Clear();
-            foreach (var jsonDicKey in jsonDic.Keys)
-            {
-                ShowJsonList.Sorted = true;
-                ShowJsonList.Items.Add(jsonDicKey);
-            }
+            //主动添加一个文件路径
+            bson.Add("Path", path);
+            //数据插入时会默认添加一个_ID
+            LiteDBTools.Insert(bson, assemble, dbName);
         }
 
         private string[] SearchAllByPrefix(string searchPrefix)
@@ -733,25 +765,6 @@ namespace JsonShow
             return searchList.ToArray();
         }
 
-        private string[] SearchCurrentList(string searchTarget)
-        {
-            // 模糊搜索 从当前列表搜索
-            List<string> searchList = new List<string>();
-            for (int i = 0; i < ShowJsonList.Items.Count; i++)
-            {
-                var isFind = ShowJsonList.Items[i].ToString().IndexOf(searchTarget, StringComparison.CurrentCultureIgnoreCase);
-                if (isFind >= 0)
-                {
-                    searchList.Add(ShowJsonList.Items[i].ToString());
-                }
-                Debug.WriteLine("source: " + ShowJsonList.Items[i].ToString() +
-                                "   searchTatget: " + searchTarget + "  " +
-                                "FindNumber: " + isFind);
-            }
-
-            return searchList.ToArray();
-        }
-
         /// <summary>
         /// Sets the CurrentWorksheet font.
         /// </summary>
@@ -780,9 +793,7 @@ namespace JsonShow
                 //string selectName = ShowJsonList.SelectedItem.ToString();
                 string json = JsonTools.SerializeToString(MainReoGrid.CurrentWorksheet);
                 Debug.WriteLine("RichBoxJson：" + json);
-                richTextBox.Text = json;
-                //写入缓存
-                Cache(ShowJsonList.SelectedItem.ToString(), json);
+
                 Debug.WriteLine("当前选择的SheetName：" + MainReoGrid.CurrentWorksheet.Name);
                 string collectName = MainReoGrid.CurrentWorksheet.Name.Split('_')[0];
                 Debug.WriteLine("集合名：" + collectName);
@@ -797,7 +808,6 @@ namespace JsonShow
             {
                 string afterAllJson = JsonTools.SerializeToString(MainReoGrid.CurrentWorksheet);
                 Debug.WriteLine("afterJson：" + afterAllJson);
-                richTextBox.Text = afterAllJson;
 
                 // 获取修改目标的Bson 第二行第一列为 Name
                 string name = MainReoGrid.CurrentWorksheet[1, 0].ToString();
@@ -839,12 +849,6 @@ namespace JsonShow
 
         private void ShowAllJson()
         {
-            richTextBox.Text = "";
-            ShowJsonList.Items.Clear();
-            foreach (var jsonDicValue in jsonDic.Keys)
-            {
-                ShowJsonList.Items.Add(jsonDicValue);
-            }
         }
 
         private BsonDocument UpDateDB(string name, string collectName, Worksheet sheet)
@@ -880,6 +884,75 @@ namespace JsonShow
         }
 
         #endregion Function
+
+        private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+        }
+
+        private void ShowForm(string name)
+        {
+            FileInfo tempJsonFile = null;
+            if (jsonDic.ContainsKey(name))
+            {
+                tempJsonFile = jsonDic[name];
+            }
+            else
+            {
+                return;
+            }
+
+            var listSheet = CreatSheetMemory(name);
+            string json = File.ReadAllText(tempJsonFile.FullName);
+            listSheet = JsonTools.DeSerializeToForm(json, listSheet /*,tempListBox.SelectedItem.ToString()*/);
+            //设置文本风格
+            SetFont();
+            //设置自适应宽高
+            AutoCellSize(listSheet);
+            //添加单元格的数据同步
+            SheetChangedEventListBox(listSheet);
+        }
+
+        private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            Debug.WriteLine("选择了节点： " + e.Node);
+            Debug.WriteLine("分配给节点的数量： " + e.Node.Nodes.Count);
+            Debug.WriteLine("获取第一个子节点： " + e.Node.FirstNode);
+            Debug.WriteLine("获取最后一个子节点： " + e.Node.LastNode);
+            Debug.WriteLine("获取下一个同级数节点： " + e.Node.NextNode);
+            Debug.WriteLine("获取下一个可见树节点： " + e.Node.NextVisibleNode);
+            Debug.WriteLine("获取上一个同级树节点： " + e.Node.PrevNode);
+            Debug.WriteLine("获取上一个可见树节点： " + e.Node.PrevVisibleNode);
+            Debug.WriteLine("节点全路径： " + e.Node.FullPath);
+            string name = e.Node.FullPath;
+            int GameIndex = 4;//从Game_后开始
+            var newName = name.Split(new string[] { "Game_" }, StringSplitOptions.None);
+            try
+            {
+                ShowForm(newName[1]);
+            }
+            catch (Exception exception)
+            {
+            }
+        }
+
+        private void TreeViewInit()
+        {
+            TreeView.Nodes.Clear();
+
+            root = new TreeNode();
+            root.Text = "Game";
+            root.Tag = "数据";
+            //rootNode.ImageIndex = 0; 暂不考虑图像
+            TreeView.Nodes.Add(root);//加入根节点
+
+            TreeView.ExpandAll();
+            //一级一级 ，根据全路径（前缀）赋值
+            foreach (var jsonEntity in jsonDic)
+            {
+                //解析前缀，找到要创建的路径
+                CreateChildNodeByPath(root, jsonEntity.Key);
+            }
+        }
     }
 
     public class stringList
