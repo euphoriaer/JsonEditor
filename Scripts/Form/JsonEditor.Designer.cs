@@ -47,6 +47,7 @@ namespace JsonShow
             this.SaveAllJson = new System.Windows.Forms.ToolStripMenuItem();
             this.AutoSaveHook = new System.Windows.Forms.ToolStripMenuItem();
             this.AutoFormHook = new System.Windows.Forms.ToolStripMenuItem();
+            this.导出当前Json类型文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.编辑ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearJsonList = new System.Windows.Forms.ToolStripMenuItem();
             this.ClealCaches = new System.Windows.Forms.ToolStripMenuItem();
@@ -70,7 +71,6 @@ namespace JsonShow
             this.JsonEditorRich = new System.Windows.Forms.RichTextBox();
             this.分类 = new System.Windows.Forms.Label();
             this.SortList = new System.Windows.Forms.ListBox();
-            this.导出当前Json类型文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -227,6 +227,13 @@ namespace JsonShow
             this.AutoFormHook.Text = "自动同步表格";
             this.AutoFormHook.Click += new System.EventHandler(this.AutoForm_ToolStripMenuItem_Click);
             // 
+            // 导出当前Json类型文件ToolStripMenuItem
+            // 
+            this.导出当前Json类型文件ToolStripMenuItem.Name = "导出当前Json类型文件ToolStripMenuItem";
+            this.导出当前Json类型文件ToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+            this.导出当前Json类型文件ToolStripMenuItem.Text = "导出当前Json类型文件";
+            this.导出当前Json类型文件ToolStripMenuItem.Click += new System.EventHandler(this.ExpertJsonToolStripMenuItem_Click);
+            // 
             // 编辑ToolStripMenuItem
             // 
             this.编辑ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -240,21 +247,21 @@ namespace JsonShow
             // ClearJsonList
             // 
             this.ClearJsonList.Name = "ClearJsonList";
-            this.ClearJsonList.Size = new System.Drawing.Size(160, 22);
+            this.ClearJsonList.Size = new System.Drawing.Size(180, 22);
             this.ClearJsonList.Text = "清空列表";
             this.ClearJsonList.Click += new System.EventHandler(this.ClearJsonLists_ItemClicked);
             // 
             // ClealCaches
             // 
             this.ClealCaches.Name = "ClealCaches";
-            this.ClealCaches.Size = new System.Drawing.Size(160, 22);
+            this.ClealCaches.Size = new System.Drawing.Size(180, 22);
             this.ClealCaches.Text = "清空缓存";
             this.ClealCaches.Click += new System.EventHandler(this.ClearCache_ItemClicked);
             // 
             // OpenCachesFolder
             // 
             this.OpenCachesFolder.Name = "OpenCachesFolder";
-            this.OpenCachesFolder.Size = new System.Drawing.Size(160, 22);
+            this.OpenCachesFolder.Size = new System.Drawing.Size(180, 22);
             this.OpenCachesFolder.Text = "打开缓存文件夹";
             this.OpenCachesFolder.Click += new System.EventHandler(this.OpenCacheFolder_Clicked);
             // 
@@ -270,13 +277,13 @@ namespace JsonShow
             // 设置ToolStripMenuItem
             // 
             this.设置ToolStripMenuItem.Name = "设置ToolStripMenuItem";
-            this.设置ToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
+            this.设置ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.设置ToolStripMenuItem.Text = "设置";
             // 
             // 自适应宽高ToolStripMenuItem
             // 
             this.自适应宽高ToolStripMenuItem.Name = "自适应宽高ToolStripMenuItem";
-            this.自适应宽高ToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
+            this.自适应宽高ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.自适应宽高ToolStripMenuItem.Text = "自适应宽高";
             this.自适应宽高ToolStripMenuItem.Click += new System.EventHandler(this.AutoCellSize_MenuItem_Click);
             // 
@@ -293,14 +300,14 @@ namespace JsonShow
             // json生成器ToolStripMenuItem
             // 
             this.json生成器ToolStripMenuItem.Name = "json生成器ToolStripMenuItem";
-            this.json生成器ToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.json生成器ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.json生成器ToolStripMenuItem.Text = "Json生成器";
             this.json生成器ToolStripMenuItem.Click += new System.EventHandler(this.JsonCreateEditorToolStripMenuItem_Click);
             // 
             // json内容展示窗口ToolStripMenuItem
             // 
             this.json内容展示窗口ToolStripMenuItem.Name = "json内容展示窗口ToolStripMenuItem";
-            this.json内容展示窗口ToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.json内容展示窗口ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.json内容展示窗口ToolStripMenuItem.Text = "Json内容展示窗口";
             this.json内容展示窗口ToolStripMenuItem.Click += new System.EventHandler(this.JsonContentEditorToolStripMenuItem_Click);
             // 
@@ -435,13 +442,6 @@ namespace JsonShow
             this.SortList.Size = new System.Drawing.Size(181, 631);
             this.SortList.TabIndex = 14;
             this.SortList.SelectedIndexChanged += new System.EventHandler(this.SortList_SelectedIndexChanged);
-            // 
-            // 导出当前Json类型文件ToolStripMenuItem
-            // 
-            this.导出当前Json类型文件ToolStripMenuItem.Name = "导出当前Json类型文件ToolStripMenuItem";
-            this.导出当前Json类型文件ToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
-            this.导出当前Json类型文件ToolStripMenuItem.Text = "导出当前Json类型文件";
-            this.导出当前Json类型文件ToolStripMenuItem.Click += new System.EventHandler(this.ExpertJsonToolStripMenuItem_Click);
             // 
             // JsonEditor
             // 

@@ -74,7 +74,7 @@ namespace JsonShow
             var worksheets = CreatReoGrid.Worksheets;
             bool OnceDB = true;
             bool isOK = false;
-            string pathAndName = DialogTools.SaveFile(out isOK);
+            string pathAndName = DialogTools.SaveFloder(out isOK);
             if (!isOK)
             {
                 return;
