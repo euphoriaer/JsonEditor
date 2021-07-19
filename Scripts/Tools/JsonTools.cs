@@ -6,7 +6,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using LiteDB;
 using unvell.ReoGrid;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace JsonShow
 {
@@ -223,7 +225,7 @@ namespace JsonShow
             return target;
         }
 
-        public static string SerializeToString(Worksheet source)
+        public static string SerializeToString(Worksheet source, int row=1)
         {
             //获取JsonKey
             List<string> titleName = new List<string>();
@@ -238,12 +240,11 @@ namespace JsonShow
                 }
             }
 
-            //for (int i = 1; i < destinationWorksheet.RowCount; i++)
-            //{
-            // 第二行，将与JsonKey 组合为Dic文件, 同时序列化，存储
+         
+            //从第二行，将与JsonKey 组合为Dic文件, 同时序列化，
             for (int j = 0; j < titleName.Count; j++)
             {
-                var pos = new CellPosition(1, j);//每一个数据
+                var pos = new CellPosition(row, j);//每一个数据
 
                 if (source[pos] != null)
                 {
@@ -307,6 +308,11 @@ namespace JsonShow
             }
         }
 
+        public static string SerializebyBson(BsonValue bson)
+        {
+            string json = LiteDB.JsonSerializer.Serialize(bson);
+            return json;
+        }
         //public static
     }
 }

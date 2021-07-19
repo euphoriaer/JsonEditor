@@ -12,7 +12,7 @@ namespace JsonShow.Scripts.Tools
         //    ["_id"]= 1,["Name"]= "John Doe"
         //}
 
-        public static string dbPath = Application.StartupPath + @"\DataBase\";
+        public static string dbPath = Application.StartupPath + @"\Project\";
 
         static LiteDBTools()
         {
@@ -55,12 +55,17 @@ namespace JsonShow.Scripts.Tools
             }
         }
 
-        public static void Insert(BsonDocument content, string assemble, string dbName)
+        public static void Insert(BsonDocument content, string assemble, string dbName,string id=null)
         {
             using (var db = new LiteDatabase(dbPath + dbName))
             {
                 var col = db.GetCollection(assemble);
                 col.Insert(content);
+                if (id!=null)
+                {
+                    
+                col.EnsureIndex(id);
+                }
             }
         }
 

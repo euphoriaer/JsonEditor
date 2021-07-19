@@ -151,7 +151,6 @@
     <EmbeddedResource Include="Scripts\Form\Dialog.resx">
       <DependentUpon>Dialog.cs</DependentUpon>
     </EmbeddedResource>
-    <None Include="app.config" />
     <None Include="Config\packages.config" />
     <None Include="packages.config" />
     <None Include="Properties\app.manifest" />

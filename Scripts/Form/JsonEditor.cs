@@ -12,6 +12,20 @@ using JsonSerializer = LiteDB.JsonSerializer;
 
 namespace JsonShow
 {
+    public struct FilePath
+    {
+        private string path;
+
+        public string Path { get => path; set => path = value; }
+    }
+
+    public struct TreePath
+    {
+        private string path;
+
+        public string Path { get => path; set => path = value; }
+    }
+
     public partial class JsonEditor : Form
     {
         #region Attribute
@@ -19,24 +33,18 @@ namespace JsonShow
         public Dictionary<string, FileInfo> jsonDic = new Dictionary<string, FileInfo>();
 
         public string[] skipKey = new[] { "_id", "Path" };
-
         private bool autoCellSize = false;
-
         private bool autoForm = true;
-
         private bool AutoMainEditor = true;
         private bool autoSave = true;
-
         private string cachePath = Application.StartupPath + @"\Cache\";
-
+        private string dbAssemble = "Game";
+        private string dbKey = "TreePath";
         private string dbName = "json.db";
-
+        private string dbProject = Application.StartupPath + @"\Project\";
         private Worksheet mainWorksheet;
-
         private string porjectName = "Default.project";
-
         private bool richOpen = false;
-
         private TreeNode root;
 
         //Key:文件名name无后缀，Value:文件对象Fileinfo
@@ -58,8 +66,6 @@ namespace JsonShow
             AutoAddEditorToolStripMenuItem.Checked = true;
             //设置文本风格
             SetFont();
-            AutoFormHook.Checked = true;
-            AutoSaveHook.Checked = true;
             mainWorksheet = MainReoGrid.CurrentWorksheet;
         }
 
@@ -73,18 +79,6 @@ namespace JsonShow
         {
             (sender as ToolStripMenuItem).Checked = !(sender as ToolStripMenuItem).Checked;
             autoCellSize = (sender as ToolStripMenuItem).Checked;
-        }
-
-        private void AutoForm_ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            (sender as ToolStripMenuItem).Checked = !(sender as ToolStripMenuItem).Checked;
-            autoForm = (sender as ToolStripMenuItem).Checked;
-        }
-
-        private void AutoSaveToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            (sender as ToolStripMenuItem).Checked = !(sender as ToolStripMenuItem).Checked;
-            autoSave = (sender as ToolStripMenuItem).Checked;
         }
 
         private void CellLookToolStripMenuItem_Click(object sender, EventArgs e)
@@ -134,16 +128,6 @@ namespace JsonShow
             }
         }
 
-        private void ClearCache_ItemClicked(object sender, EventArgs e)
-        {
-            //DirectoryInfo tempDirectoryInfo = new DirectoryInfo(cachePath);
-            //FileInfo[] cacheJson = tempDirectoryInfo.GetFiles();
-            //foreach (var fileInfo in cacheJson)
-            //{
-            //    fileInfo.Delete();
-            //}
-        }
-
         private void ClearJsonLists_ItemClicked(object sender, EventArgs e)
         {
             jsonDic.Clear();
@@ -159,6 +143,7 @@ namespace JsonShow
             {
                 return;//递归结束
             }
+
             string[] names = fullpath.Split('_');
 
             //查找当前层级是否存在同名节点
@@ -201,13 +186,13 @@ namespace JsonShow
 
         private void CreatJsonByRowToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //Error 使用选择文件夹
+            // todo 根据SerializeTostring 重构
             var worksheets = MainReoGrid.Worksheets;
             bool OnceDB = true;
             bool isOK = false;
             string path = DialogTools.ChooseFolder(out isOK);
 
-           // string pathAndName = DialogTools.SaveFile(out isOK);
+            // string pathAndName = DialogTools.SaveFile(out isOK);
             if (!isOK)
             {
                 return;
@@ -258,7 +243,7 @@ namespace JsonShow
                     }
                 }
             }
-            TreeViewInit();
+            //TreeViewInit();
             DialogTools.OpenExplorer(jsonDirs);
         }
 
@@ -330,10 +315,8 @@ namespace JsonShow
         {
         }
 
-        private void OpenCacheFolder_Clicked(object sender, EventArgs e)
+        private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            //todo 生成缓存
-            DialogTools.OpenExplorer(cachePath);
         }
 
         /// <summary>
@@ -341,57 +324,6 @@ namespace JsonShow
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        private void OpenFile_ItemClicked(object sender, EventArgs e)
-        {
-            bool isOk = false;
-            string[] paths = DialogTools.OpenFiles(out isOk, "Josn文件|*.json|全部|*.*");
-            if (isOk)
-            {
-                foreach (string path in paths)
-                {
-                    string tempJsonName = Path.GetFileNameWithoutExtension(path);
-
-                    FileInfo tempJsonfile = new FileInfo(path);
-                    if (jsonDic.ContainsKey(tempJsonName) == false)
-                    {
-                        jsonDic.Add(tempJsonName, tempJsonfile);
-                    }
-                }
-            }
-        }
-
-        private void OpenJsonFileInExplore_Click(string name)
-        {
-            System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo("Explorer.exe");
-            string tempJsonPath = jsonDic[name].FullName;
-            psi.Arguments = "/e,/select," + tempJsonPath;
-            System.Diagnostics.Process.Start(psi);
-        }
-
-        /// <summary>
-        /// Handles the Click event of the 打开Json文件夹ToolStripMenuItem control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        private void OpenJsonFolde_Click(object sender, EventArgs e)
-        {
-            bool isOK;
-            string path = DialogTools.ChooseFolder(out isOK);
-            if (isOK == false)
-            {
-                return;
-            }
-            DirectoryInfo jsonPath = new DirectoryInfo(path);
-            FileInfo[] jsonFiles = jsonPath.GetFiles("*.json");
-            foreach (var jsonFile in jsonFiles)
-            {
-                string tempJsonName = Path.GetFileNameWithoutExtension(jsonFile.Name);
-                if (jsonDic.ContainsKey(tempJsonName) == false)
-                {
-                    jsonDic.Add(tempJsonName, jsonFile);
-                }
-            }
-        }
 
         private void OpenProjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -404,56 +336,57 @@ namespace JsonShow
             ClearJsonLists_ItemClicked(sender, e);
             string json = File.ReadAllText(projectfiles[0]);
             Project projectObj = JsonConvert.DeserializeObject<Project>(json);
-            foreach (var entity in projectObj.showJsonList)
+            foreach (var entity in projectObj.showNodes)
             {
                 jsonDic.Add(entity.Key, entity.Value);
             }
 
             Debug.WriteLine("载入数据完成");
             //todo  所有数据初始化提取出来，form加载与打开项目时使用
-            TreeViewInit();
+            //TreeViewInit();
+
             //直接读取列表与缓存（避免每次都要全选json文件），目前关闭后缓存不会被再读取（相当于删除），防止数据混乱
         }
 
-        private void SaveAllJsons(object sender, EventArgs e)
-        {//todo 重做保存所有
-            //try
-            //{
-            //    foreach (var cacheDicKey in cacheDic.Keys)
-            //    {
-            //        string tempContent = File.ReadAllText(cacheDic[cacheDicKey].FullName);
-            //        File.WriteAllText(jsonDic[cacheDicKey].FullName, tempContent);
-            //    }
-
-            //    EditorState.Text = "已保存";
-            //}
-            //catch (Exception exception)
-            //{
-            //}
+        private void ReNameToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            TreeView.SelectedNode.BeginEdit();
         }
 
-        private void SaveJson(object sender, EventArgs e)
+        private void SaveProjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //todo 针对树结构重做
-            //try
+            WorksheetCollection sheets = MainReoGrid.Worksheets;
+            List<string> nodesPaths = new List<string>();
+            string dbGamePath = dbProject;
+            bool isOk = false;//todo 另存为项目
+            //string dbGamePath = DialogTools.ChooseFolder(out isOk);
+            //if (!isOk)
             //{
-            //    string tempJsonName = ShowJsonList.SelectedItem.ToString();
-            //    FileInfo tempJsonFile = jsonDic[tempJsonName];
-            //    如果缓存存在，将缓存内容保存到Json
-            //    if (cacheDic.ContainsKey(tempJsonName))
-            //    {
-            //        string tempCacheText = File.ReadAllText(cacheDic[tempJsonName].FullName);
-            //        File.WriteAllText(tempJsonFile.FullName, tempCacheText);
-            //        EditorState.Text = "缓存内容已写入：" + tempJsonFile.FullName;
-            //        return;
-            //    }
+            //    return;
+            //}
 
-            //    File.WriteAllText(tempJsonFile.FullName, richTextBox.Text);
-            //    EditorState.Text = "未修改";
-            //}
-            //catch (Exception exception)
-            //{
-            //}
+            foreach (var sheet in sheets)
+            {
+                if (sheet.Name == "Sheet1")
+                {
+                    continue;
+                }
+                string json = JsonTools.SerializeToString(sheet, row: 1);
+                //todo 把json按treepath 存起来
+                string treePath = sheet.Name.Replace('_', '/');
+
+                string jsonPath = dbGamePath + treePath;
+                //加入jconDic
+                FileInfo jsonFileInfo = new FileInfo(jsonPath);
+                jsonDic.Add(sheet.Name, jsonFileInfo);
+                //加入liteDb
+                BsonDocument bson = new BsonDocument();
+                BsonValue bsonValue = JsonSerializer.Deserialize(json);
+                bson.Add(sheet.Name, bsonValue);
+                bson.Add(dbKey, sheet.Name);
+                nodesPaths.Add(sheet.Name);
+                LiteDBTools.Insert(bson, dbAssemble, dbName, id: dbKey);
+            }
         }
 
         private void SearchButton_Click(object sender, EventArgs e)
@@ -522,6 +455,35 @@ namespace JsonShow
             }
         }
 
+        private void TreeNodecontextMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+        }
+
+        private void TreeNodeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Debug.WriteLine("select node " + TreeView.SelectedNode);
+            TreeNode node = new TreeNode();
+            node.Text = "新建节点";
+            node.ContextMenuStrip = TreeNodecontextMenuStrip;
+            TreeView.SelectedNode.Nodes.Add(node);
+            TreeView.SelectedNode = node;
+            node.BeginEdit();
+        }
+
+        private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            Debug.WriteLine("选择了节点： " + e.Node);
+            Debug.WriteLine("分配给节点的数量： " + e.Node.Nodes.Count);
+            Debug.WriteLine("获取第一个子节点： " + e.Node.FirstNode);
+            Debug.WriteLine("获取最后一个子节点： " + e.Node.LastNode);
+            Debug.WriteLine("获取下一个同级数节点： " + e.Node.NextNode);
+            Debug.WriteLine("获取下一个可见树节点： " + e.Node.NextVisibleNode);
+            Debug.WriteLine("获取上一个同级树节点： " + e.Node.PrevNode);
+            Debug.WriteLine("获取上一个可见树节点： " + e.Node.PrevVisibleNode);
+            Debug.WriteLine("节点全路径： " + e.Node.FullPath);
+            Worksheet sheet = SearchWorksheet(e.Node.FullPath);
+        }
+
         #endregion EditorItem
 
         #region Function
@@ -553,20 +515,6 @@ namespace JsonShow
             }
         }
 
-        private void AutoSaveCache()
-        {
-            //if (!autoSave)
-            //{
-            //    return;
-            //}
-            //foreach (var cacheEntity in cacheDic)
-            //{
-            //    string cacheJson = File.ReadAllText(cacheEntity.Value.FullName);
-            //    string jsonPath = jsonDic[cacheEntity.Key].FullName;
-            //    File.WriteAllText(jsonPath, cacheJson);
-            //}
-        }
-
         private void Cache(string cacheName, string cacheContent)
         {
             //DirectoryInfo cacheDir = Directory.CreateDirectory(cachePath);
@@ -585,12 +533,17 @@ namespace JsonShow
         {
             Debug.WriteLine("关闭窗体,保存项目");
             Project project = new Project();
-            project.showJsonList = jsonDic;
+            project.showNodes = jsonDic;
 
             project.SaveProject(porjectName);
             Debug.WriteLine("保存项目完成");
         }
 
+        /// <summary>
+        /// Creats the sheet memory. find or creat
+        /// </summary>
+        /// <param name="sheetName">Name of the sheet.</param>
+        /// <returns></returns>
         private Worksheet CreatSheetMemory(string sheetName)
         {
             var tempWork = MainReoGrid.Worksheets.Where(p => p.Name == sheetName);
@@ -611,7 +564,7 @@ namespace JsonShow
         {
             Debug.WriteLine("打开窗体，载入数据");
             Project project = new Project();
-            if (!File.Exists(project.defaultSavePath + porjectName))
+            if (!File.Exists(dbProject + porjectName))
             {
                 return;
             }
@@ -621,7 +574,7 @@ namespace JsonShow
                 return;
             }
             Project projectObj = JsonConvert.DeserializeObject<Project>(json);
-            foreach (var entity in projectObj.showJsonList)
+            foreach (var entity in projectObj.showNodes)
             {
                 jsonDic.Add(entity.Key, entity.Value);
             }
@@ -660,6 +613,20 @@ namespace JsonShow
             }
         }
 
+        private Worksheet FindWorksheet(string sheetName)
+        {
+            WorksheetCollection sheets = MainReoGrid.Worksheets;
+            foreach (var sheet in sheets)
+            {
+                if (sheet.Name == sheetName)
+                {
+                    return sheet;
+                }
+            }
+
+            return null;
+        }
+
         private string GetCellContent(Cell cell)
         {
             string id = cell.DisplayText;
@@ -676,15 +643,10 @@ namespace JsonShow
 
         private string GetCurrentCellJson(string cellColumnName, string cellContent)
         {
-            //var data= LiteDBTools.SearchByID(id, cellCol[0], dbName);
-            //todo Name能否修改，指定为集合第二列为Key（存的时候使用的集合第二列）
             string cmd = string.Format("$.Name = '{0}'", cellContent);
             BsonDocument data = LiteDBTools.SearchFirst(cmd, cellColumnName, dbName);
 
             string json = LiteDB.JsonSerializer.Serialize(data);
-            //todo 格式化字符串
-            //string json2 = JsonTools.SerializeToString(json);
-            //Debug.WriteLine("读取的数据库文件："+json2);
             return json;
         }
 
@@ -696,7 +658,6 @@ namespace JsonShow
         /// <returns></returns>
         private TreeNode GetNode(TreeNodeCollection nodes, string fullPath)
         {
-            //todo 分隔符修改
             string[] paths = fullPath.Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries);
             TreeNode tn = null;
             if (paths.Length > 0)
@@ -765,6 +726,20 @@ namespace JsonShow
             return searchList.ToArray();
         }
 
+        private Worksheet SearchWorksheet(string sheetName)
+        {
+            var tempWork = MainReoGrid.Worksheets.Where(p => p.Name == sheetName);
+            if (tempWork.Count() == 0)
+            {
+                return null;
+            }
+            else
+            {
+                MainReoGrid.CurrentWorksheet = tempWork.First();
+            }
+            return tempWork.First();
+        }
+
         /// <summary>
         /// Sets the CurrentWorksheet font.
         /// </summary>
@@ -791,7 +766,7 @@ namespace JsonShow
             destinationWorksheet.CellDataChanged += ((send, args) =>
             {
                 //string selectName = ShowJsonList.SelectedItem.ToString();
-                string json = JsonTools.SerializeToString(MainReoGrid.CurrentWorksheet);
+                string json = JsonTools.SerializeToString(MainReoGrid.CurrentWorksheet, row: 1);
                 Debug.WriteLine("RichBoxJson：" + json);
 
                 Debug.WriteLine("当前选择的SheetName：" + MainReoGrid.CurrentWorksheet.Name);
@@ -806,7 +781,7 @@ namespace JsonShow
         {   //右键查看详情 从而生成的sheet 单元格，修改事件
             destinationWorksheet.CellDataChanged += ((send, args) =>
             {
-                string afterAllJson = JsonTools.SerializeToString(MainReoGrid.CurrentWorksheet);
+                string afterAllJson = JsonTools.SerializeToString(MainReoGrid.CurrentWorksheet, row: 1);
                 Debug.WriteLine("afterJson：" + afterAllJson);
 
                 // 获取修改目标的Bson 第二行第一列为 Name
@@ -838,8 +813,6 @@ namespace JsonShow
                 string fjson = JsonTools.Format(afterJson);
                 Debug.WriteLine("写入缓存：" + cacheJson);
 
-                //如果勾选了自动保存，则同时写入文件，bson.Last()
-                //todo 可能出现有缓存，但是列表没有对应文件（数据库中），所以通过数据库索引到文件目录,而不用AutoSave
                 if (autoSave)
                 {
                     File.WriteAllText(afterJsonPath, cacheJson);
@@ -849,6 +822,68 @@ namespace JsonShow
 
         private void ShowAllJson()
         {
+        }
+
+        private void TreeViewInit()
+        {
+            TreeView.MouseDown += (o, e) =>
+            {
+                if (e.Button == MouseButtons.Right)
+                {
+                    TreeNode tn = TreeView.GetNodeAt(e.X, e.Y);
+                    if (tn != null)
+                    {
+                        TreeView.SelectedNode = tn;
+                    }
+                }
+            };
+            TreeView.MouseDoubleClick += (o, e) =>
+            {
+                try
+                {
+                    string name = TreeView.SelectedNode.FullPath;
+                    Worksheet sheet = CreatSheetWork(name);
+                    //todo 从数据库查找数据，存在则对sheet赋值
+                    string cmd = string.Format("$.{0} = '{1}'", dbKey, sheet.Name);
+                    var data = LiteDBTools.SearchFirst(cmd, dbAssemble, dbName);
+                    if (data == null)
+                    {
+                        return;
+                    }
+
+                    foreach (var dataEntity in data)
+                    {
+                        if (dataEntity.Key == sheet.Name)
+                        {
+                            string json = JsonTools.SerializebyBson(dataEntity.Value);
+                            JsonTools.DeSerializeToForm(json, sheet);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                }
+            };
+
+            root = new TreeNode();
+            root.Text = "Game";
+            root.Tag = "数据";
+            TreeView.Nodes.Clear();
+            TreeView.Nodes.Add(root);//加入根节点
+            root.ContextMenuStrip = TreeNodecontextMenuStrip;
+
+            TreeView.ExpandAll();
+            //一级一级 ，根据全路径（前缀）赋值
+            foreach (var jsonEntity in jsonDic)
+            {
+                //解析前缀，找到要创建的路径,除掉Game
+                if (jsonEntity.Key == "Game")
+                {
+                    continue;
+                }
+                string fullPath = jsonEntity.Key.Split(new string[] { "Game_" }, StringSplitOptions.None)[1];
+                CreateChildNodeByPath(root, fullPath);
+            }
         }
 
         private BsonDocument UpDateDB(string name, string collectName, Worksheet sheet)
@@ -885,78 +920,15 @@ namespace JsonShow
 
         #endregion Function
 
-        private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        private void 生成所有节点的Josn文件ToolStripMenuItem_Click(object sender, EventArgs e)
         {
+
         }
 
-        private void ShowForm(string name)
+        private void 生成Json文件ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FileInfo tempJsonFile = null;
-            if (jsonDic.ContainsKey(name))
-            {
-                tempJsonFile = jsonDic[name];
-            }
-            else
-            {
-                return;
-            }
+            //todo 根据当前节点的嵌套关系 生成一个Json文件
 
-            var listSheet = CreatSheetMemory(name);
-            string json = File.ReadAllText(tempJsonFile.FullName);
-            listSheet = JsonTools.DeSerializeToForm(json, listSheet /*,tempListBox.SelectedItem.ToString()*/);
-            //设置文本风格
-            SetFont();
-            //设置自适应宽高
-            AutoCellSize(listSheet);
-            //添加单元格的数据同步
-            SheetChangedEventListBox(listSheet);
         }
-
-        private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
-        {
-            Debug.WriteLine("选择了节点： " + e.Node);
-            Debug.WriteLine("分配给节点的数量： " + e.Node.Nodes.Count);
-            Debug.WriteLine("获取第一个子节点： " + e.Node.FirstNode);
-            Debug.WriteLine("获取最后一个子节点： " + e.Node.LastNode);
-            Debug.WriteLine("获取下一个同级数节点： " + e.Node.NextNode);
-            Debug.WriteLine("获取下一个可见树节点： " + e.Node.NextVisibleNode);
-            Debug.WriteLine("获取上一个同级树节点： " + e.Node.PrevNode);
-            Debug.WriteLine("获取上一个可见树节点： " + e.Node.PrevVisibleNode);
-            Debug.WriteLine("节点全路径： " + e.Node.FullPath);
-            string name = e.Node.FullPath;
-            int GameIndex = 4;//从Game_后开始
-            var newName = name.Split(new string[] { "Game_" }, StringSplitOptions.None);
-            try
-            {
-                ShowForm(newName[1]);
-            }
-            catch (Exception exception)
-            {
-            }
-        }
-
-        private void TreeViewInit()
-        {
-            TreeView.Nodes.Clear();
-
-            root = new TreeNode();
-            root.Text = "Game";
-            root.Tag = "数据";
-            //rootNode.ImageIndex = 0; 暂不考虑图像
-            TreeView.Nodes.Add(root);//加入根节点
-
-            TreeView.ExpandAll();
-            //一级一级 ，根据全路径（前缀）赋值
-            foreach (var jsonEntity in jsonDic)
-            {
-                //解析前缀，找到要创建的路径
-                CreateChildNodeByPath(root, jsonEntity.Key);
-            }
-        }
-    }
-
-    public class stringList
-    {
-        public List<object> content = new List<object>();
     }
 }
