@@ -60,7 +60,6 @@ namespace JsonShow
             this.文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.打开项目ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.保存项目ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.导出当前Json类型文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.编辑ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.修改行数ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.修改列数ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -70,6 +69,7 @@ namespace JsonShow
             this.SerializeJson = new System.Windows.Forms.ToolStripMenuItem();
             this.生成ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AutoAddEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.生成所有节点的Josn文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.解析ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.解析Json文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.解析Excel文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -81,13 +81,13 @@ namespace JsonShow
             this.MainReoGrid = new unvell.ReoGrid.ReoGridControl();
             this.FormCell = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.查看详细内容ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.label1 = new System.Windows.Forms.Label();
+            this.FormName = new System.Windows.Forms.Label();
             this.TreeView = new System.Windows.Forms.TreeView();
             this.TreeNodecontextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.TreeNodeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.重命名ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.生成所有节点的Josn文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.生成Json文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.删除节点ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.FormCell.SuspendLayout();
@@ -135,8 +135,7 @@ namespace JsonShow
             // 
             this.文件ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.打开项目ToolStripMenuItem,
-            this.保存项目ToolStripMenuItem,
-            this.导出当前Json类型文件ToolStripMenuItem});
+            this.保存项目ToolStripMenuItem});
             this.文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
             this.文件ToolStripMenuItem.Size = new System.Drawing.Size(44, 21);
             this.文件ToolStripMenuItem.Text = "文件";
@@ -144,7 +143,7 @@ namespace JsonShow
             // 打开项目ToolStripMenuItem
             // 
             this.打开项目ToolStripMenuItem.Name = "打开项目ToolStripMenuItem";
-            this.打开项目ToolStripMenuItem.Size = new System.Drawing.Size(234, 22);
+            this.打开项目ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.打开项目ToolStripMenuItem.Text = "打开项目";
             this.打开项目ToolStripMenuItem.Click += new System.EventHandler(this.OpenProjectToolStripMenuItem_Click);
             // 
@@ -152,16 +151,9 @@ namespace JsonShow
             // 
             this.保存项目ToolStripMenuItem.Name = "保存项目ToolStripMenuItem";
             this.保存项目ToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.保存项目ToolStripMenuItem.Size = new System.Drawing.Size(234, 22);
+            this.保存项目ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.保存项目ToolStripMenuItem.Text = "保存项目";
             this.保存项目ToolStripMenuItem.Click += new System.EventHandler(this.SaveProjectToolStripMenuItem_Click);
-            // 
-            // 导出当前Json类型文件ToolStripMenuItem
-            // 
-            this.导出当前Json类型文件ToolStripMenuItem.Name = "导出当前Json类型文件ToolStripMenuItem";
-            this.导出当前Json类型文件ToolStripMenuItem.Size = new System.Drawing.Size(234, 22);
-            this.导出当前Json类型文件ToolStripMenuItem.Text = "导出当前Json类型文件(todo)";
-            this.导出当前Json类型文件ToolStripMenuItem.Click += new System.EventHandler(this.ExpertJsonToolStripMenuItem_Click);
             // 
             // 编辑ToolStripMenuItem
             // 
@@ -230,6 +222,13 @@ namespace JsonShow
             this.AutoAddEditorToolStripMenuItem.Size = new System.Drawing.Size(198, 22);
             this.AutoAddEditorToolStripMenuItem.Text = "自动添加到Json编辑器";
             this.AutoAddEditorToolStripMenuItem.Click += new System.EventHandler(this.AutoAddEditorToolStripMenuItem_Click);
+            // 
+            // 生成所有节点的Josn文件ToolStripMenuItem
+            // 
+            this.生成所有节点的Josn文件ToolStripMenuItem.Name = "生成所有节点的Josn文件ToolStripMenuItem";
+            this.生成所有节点的Josn文件ToolStripMenuItem.Size = new System.Drawing.Size(198, 22);
+            this.生成所有节点的Josn文件ToolStripMenuItem.Text = "生成所有子节点的Josn";
+            this.生成所有节点的Josn文件ToolStripMenuItem.Click += new System.EventHandler(this.CreateAllNodeToolStripMenuItem_Click);
             // 
             // 解析ToolStripMenuItem
             // 
@@ -328,18 +327,18 @@ namespace JsonShow
             this.查看详细内容ToolStripMenuItem.Text = "查看详细内容";
             this.查看详细内容ToolStripMenuItem.Click += new System.EventHandler(this.CellLookToolStripMenuItem_Click);
             // 
-            // label1
+            // FormName
             // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.FormName.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(316, 62);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(29, 12);
-            this.label1.TabIndex = 11;
-            this.label1.Text = "Form";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
+            this.FormName.AutoSize = true;
+            this.FormName.Location = new System.Drawing.Point(316, 62);
+            this.FormName.Name = "FormName";
+            this.FormName.Size = new System.Drawing.Size(29, 12);
+            this.FormName.TabIndex = 11;
+            this.FormName.Text = "Form";
+            this.FormName.Click += new System.EventHandler(this.label1_Click);
             // 
             // TreeView
             // 
@@ -387,9 +386,10 @@ namespace JsonShow
             this.TreeNodecontextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.TreeNodeToolStripMenuItem,
             this.重命名ToolStripMenuItem,
-            this.生成Json文件ToolStripMenuItem});
+            this.生成Json文件ToolStripMenuItem,
+            this.删除节点ToolStripMenuItem});
             this.TreeNodecontextMenuStrip.Name = "contextMenuStrip1";
-            this.TreeNodecontextMenuStrip.Size = new System.Drawing.Size(181, 92);
+            this.TreeNodecontextMenuStrip.Size = new System.Drawing.Size(181, 114);
             this.TreeNodecontextMenuStrip.Opening += new System.ComponentModel.CancelEventHandler(this.TreeNodecontextMenuStrip_Opening);
             // 
             // TreeNodeToolStripMenuItem
@@ -406,19 +406,19 @@ namespace JsonShow
             this.重命名ToolStripMenuItem.Text = "重命名";
             this.重命名ToolStripMenuItem.Click += new System.EventHandler(this.ReNameToolStripMenuItem_Click);
             // 
-            // 生成所有节点的Josn文件ToolStripMenuItem
-            // 
-            this.生成所有节点的Josn文件ToolStripMenuItem.Name = "生成所有节点的Josn文件ToolStripMenuItem";
-            this.生成所有节点的Josn文件ToolStripMenuItem.Size = new System.Drawing.Size(198, 22);
-            this.生成所有节点的Josn文件ToolStripMenuItem.Text = "生成所有子节点的Josn";
-            this.生成所有节点的Josn文件ToolStripMenuItem.Click += new System.EventHandler(this.生成所有节点的Josn文件ToolStripMenuItem_Click);
-            // 
             // 生成Json文件ToolStripMenuItem
             // 
             this.生成Json文件ToolStripMenuItem.Name = "生成Json文件ToolStripMenuItem";
-            this.生成Json文件ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.生成Json文件ToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
             this.生成Json文件ToolStripMenuItem.Text = "生成Json文件";
-            this.生成Json文件ToolStripMenuItem.Click += new System.EventHandler(this.生成Json文件ToolStripMenuItem_Click);
+            this.生成Json文件ToolStripMenuItem.Click += new System.EventHandler(this.CreateTreeNodeFileToolStripMenuItem_Click);
+            // 
+            // 删除节点ToolStripMenuItem
+            // 
+            this.删除节点ToolStripMenuItem.Name = "删除节点ToolStripMenuItem";
+            this.删除节点ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.删除节点ToolStripMenuItem.Text = "删除节点";
+            this.删除节点ToolStripMenuItem.Click += new System.EventHandler(this.RemoveNodeToolStripMenuItem_Click);
             // 
             // JsonEditor
             // 
@@ -426,7 +426,7 @@ namespace JsonShow
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(1184, 761);
             this.Controls.Add(this.TreeView);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.FormName);
             this.Controls.Add(this.MainReoGrid);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.SearchButton);
@@ -463,12 +463,11 @@ namespace JsonShow
         private System.Windows.Forms.ToolStripMenuItem 编辑ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem SerializeJson;
         private unvell.ReoGrid.ReoGridControl MainReoGrid;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label FormName;
         private System.Windows.Forms.ToolStripMenuItem 自适应宽高ToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip FormCell;
         private System.Windows.Forms.ToolStripMenuItem 查看详细内容ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 打开项目ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem 导出当前Json类型文件ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 生成ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 解析ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 解析Json文件ToolStripMenuItem;
@@ -483,6 +482,7 @@ namespace JsonShow
         private System.Windows.Forms.ToolStripMenuItem 保存项目ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 生成所有节点的Josn文件ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 生成Json文件ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 删除节点ToolStripMenuItem;
     }
 }
 

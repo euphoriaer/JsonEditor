@@ -19,6 +19,7 @@ namespace JsonShow.Scripts.Tools
             Directory.CreateDirectory(dbPath);
         }
 
+       
         public static void Update(BsonDocument content, string assemble, string dbName)
         {
             using (var db = new LiteDatabase(dbPath + dbName))

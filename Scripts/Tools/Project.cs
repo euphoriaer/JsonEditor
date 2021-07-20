@@ -6,19 +6,14 @@ using System.Windows.Forms;
 
 public class Project
 {
-    public Dictionary<string, FileInfo> showNodes = new Dictionary<string, FileInfo>();
+    //public Dictionary<string, FileInfo> showNodes = new Dictionary<string, FileInfo>();
+    public  string[] nodes;
     private static string defaultSavePath = Application.StartupPath + @"\Project\";
     private Project project;
 
     public Project()
     {
-        try
-        {
-            Directory.CreateDirectory(defaultSavePath);
-        }
-        catch (Exception e)
-        {
-        }
+        Directory.CreateDirectory(defaultSavePath);
         project = this;
     }
 

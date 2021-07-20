@@ -16,14 +16,20 @@ namespace JsonShow
     {
         private string path;
 
-        public string Path { get => path; set => path = value; }
+        public string Path
+        {
+            get => path; set => path = value;
+        }
     }
 
     public struct TreePath
     {
         private string path;
 
-        public string Path { get => path; set => path = value; }
+        public string Path
+        {
+            get => path; set => path = value;
+        }
     }
 
     public partial class JsonEditor : Form
@@ -172,6 +178,7 @@ namespace JsonShow
                 //不存在，创建，
                 TreeNode newNode = new TreeNode();
                 newNode.Text = names[0];
+                newNode.ContextMenuStrip = TreeNodecontextMenuStrip;
                 parent.Nodes.Add(newNode);
                 //修改字符串，进入下一级
                 int startName = 1;
@@ -336,10 +343,10 @@ namespace JsonShow
             ClearJsonLists_ItemClicked(sender, e);
             string json = File.ReadAllText(projectfiles[0]);
             Project projectObj = JsonConvert.DeserializeObject<Project>(json);
-            foreach (var entity in projectObj.showNodes)
-            {
-                jsonDic.Add(entity.Key, entity.Value);
-            }
+            //foreach (var entity in projectObj.showNodes)
+            //{
+            //    jsonDic.Add(entity.Key, entity.Value);
+            //}
 
             Debug.WriteLine("载入数据完成");
             //todo  所有数据初始化提取出来，form加载与打开项目时使用
@@ -355,6 +362,12 @@ namespace JsonShow
 
         private void SaveProjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            nodeFullpath.Clear();
+            GetLeafNode(root);
+            Project project = new Project();
+            project.nodes = nodeFullpath.ToArray();
+            project.SaveProject(porjectName);
+
             WorksheetCollection sheets = MainReoGrid.Worksheets;
             List<string> nodesPaths = new List<string>();
             string dbGamePath = dbProject;
@@ -364,7 +377,6 @@ namespace JsonShow
             //{
             //    return;
             //}
-
             foreach (var sheet in sheets)
             {
                 if (sheet.Name == "Sheet1")
@@ -378,7 +390,10 @@ namespace JsonShow
                 string jsonPath = dbGamePath + treePath;
                 //加入jconDic
                 FileInfo jsonFileInfo = new FileInfo(jsonPath);
-                jsonDic.Add(sheet.Name, jsonFileInfo);
+                if (!jsonDic.ContainsKey(sheet.Name))
+                {
+                    jsonDic.Add(sheet.Name, jsonFileInfo);
+                }
                 //加入liteDb
                 BsonDocument bson = new BsonDocument();
                 BsonValue bsonValue = JsonSerializer.Deserialize(json);
@@ -470,6 +485,24 @@ namespace JsonShow
             node.BeginEdit();
         }
 
+        private List<string> nodeFullpath = new List<string>();
+
+        private void GetLeafNode(TreeNode root)
+        {
+            if (root.Nodes.Count == 0)
+            {  //递归结束,到达叶子结点，将叶子节点加入列表
+                nodeFullpath.Add(root.FullPath);
+                return;
+            }
+
+            for (int i = 0; i < root.Nodes.Count; i++)//从第一个子节点递归
+            {
+                GetLeafNode(root.Nodes[i]);//往下找叶节点
+            }
+
+            return;//返回层级关系
+        }
+
         private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
         {
             Debug.WriteLine("选择了节点： " + e.Node);
@@ -482,6 +515,7 @@ namespace JsonShow
             Debug.WriteLine("获取上一个可见树节点： " + e.Node.PrevVisibleNode);
             Debug.WriteLine("节点全路径： " + e.Node.FullPath);
             Worksheet sheet = SearchWorksheet(e.Node.FullPath);
+            FormName.Text = e.Node.FullPath;//
         }
 
         #endregion EditorItem
@@ -517,25 +551,12 @@ namespace JsonShow
 
         private void Cache(string cacheName, string cacheContent)
         {
-            //DirectoryInfo cacheDir = Directory.CreateDirectory(cachePath);
-            //string tempCacheJsonPath = cacheDir.FullName + cacheName;
-            //File.WriteAllText(tempCacheJsonPath, cacheContent);
-            //if (!cacheDic.ContainsKey(cacheName)) //不存在就加入到缓存列表
-            //{
-            //    FileInfo cacheFile = new FileInfo(tempCacheJsonPath);
-            //    cacheDic.Add(cacheName, cacheFile);
-            //}
-
-            //AutoSaveCache();
         }
 
         private void CloseForm(object sender, FormClosingEventArgs e)
         {
             Debug.WriteLine("关闭窗体,保存项目");
-            Project project = new Project();
-            project.showNodes = jsonDic;
 
-            project.SaveProject(porjectName);
             Debug.WriteLine("保存项目完成");
         }
 
@@ -562,8 +583,8 @@ namespace JsonShow
 
         private void DefaultOnceLoad()
         {
-            Debug.WriteLine("打开窗体，载入数据");
             Project project = new Project();
+            Debug.WriteLine("打开窗体，载入数据");
             if (!File.Exists(dbProject + porjectName))
             {
                 return;
@@ -574,10 +595,19 @@ namespace JsonShow
                 return;
             }
             Project projectObj = JsonConvert.DeserializeObject<Project>(json);
-            foreach (var entity in projectObj.showNodes)
+            if (projectObj == null)
             {
-                jsonDic.Add(entity.Key, entity.Value);
+                return;
             }
+            nodeFullpath.Clear();
+            foreach (var item in projectObj.nodes)
+            {
+                nodeFullpath.Add(item);
+            }
+            //foreach (var entity in projectObj.showNodes)
+            //{
+            //    jsonDic.Add(entity.Key, entity.Value);
+            //}
 
             Debug.WriteLine("载入数据完成");
         }
@@ -874,14 +904,14 @@ namespace JsonShow
 
             TreeView.ExpandAll();
             //一级一级 ，根据全路径（前缀）赋值
-            foreach (var jsonEntity in jsonDic)
+            foreach (var nodePath in nodeFullpath)
             {
                 //解析前缀，找到要创建的路径,除掉Game
-                if (jsonEntity.Key == "Game")
+                if (nodePath == "Game")
                 {
                     continue;
                 }
-                string fullPath = jsonEntity.Key.Split(new string[] { "Game_" }, StringSplitOptions.None)[1];
+                string fullPath = nodePath.Split(new string[] { "Game_" }, StringSplitOptions.None)[1];
                 CreateChildNodeByPath(root, fullPath);
             }
         }
@@ -920,15 +950,91 @@ namespace JsonShow
 
         #endregion Function
 
-        private void 生成所有节点的Josn文件ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void 生成Json文件ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void CreateTreeNodeFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //todo 根据当前节点的嵌套关系 生成一个Json文件
+            bool isOk;
+            string savePath = DialogTools.SaveFile(out isOk);
+            if (!isOk)
+            {
+                return;
+            }
+            SaveProjectToolStripMenuItem_Click(sender, e);
+            Debug.WriteLine("嵌套关系的根节点：" + TreeView.SelectedNode.Name);
+            object jobject = CreateTreeJson(TreeView.SelectedNode);
+            string json = JsonTools.SerializeToString(jobject);
+            File.WriteAllText(savePath, json);
+        }
 
+        private object CreateTreeJson(TreeNode root)
+        {
+            if (root.Nodes.Count == 0)
+            {  //递归结束,到达叶子结点，所有数据在叶子节点，赋值
+                object data = GetJObjectByDBlite(root.FullPath);
+                return data;
+            }
+
+            //当前节点拥有的 子节点数，所有子节点属于同一层
+            object[] layer = new object[root.Nodes.Count];
+            for (int i = 0; i < root.Nodes.Count; i++)//从第一个子节点递归，建层
+            {
+                layer[i] = CreateTreeJson(root.Nodes[i]);//将子层加入父层
+            }
+
+            return layer;//返回层级关系
+        }
+
+        public object GetJObjectByDBlite(string nodePath)
+        {
+            string cmd = string.Format("$.{0} = '{1}'", dbKey, nodePath);
+            var data = LiteDBTools.SearchFirst(cmd, dbAssemble, dbName);
+            if (data == null)
+            {
+                return null;
+            }
+            foreach (var dataEntity in data)
+            {
+                if (dataEntity.Key == nodePath)
+                {
+                    string json = JsonTools.SerializebyBson(dataEntity.Value);
+                    object jObject = JsonTools.DeSerializeToObject(json);
+                    return jObject;
+                }
+            }
+            return null;
+        }
+
+        private void CreateAllNodeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            bool isOk;
+            string saveFolder = DialogTools.ChooseFolder(out isOk);
+            if (!isOk)
+            {
+                return;
+            }
+            nodeFullpath.Clear();
+            GetLeafNode(root);
+            foreach (var item in nodeFullpath)
+            {
+                int mid = item.LastIndexOf('_');//mid 前面是路径
+                string temp = item.Substring(0, mid);
+                string fullPath = temp.Replace('_', '\\');//替换符号
+                Directory.CreateDirectory(saveFolder +@"\"+ fullPath);
+                object job = GetJObjectByDBlite(item);
+                string json = JsonTools.SerializeToString(job);
+                string filePath = saveFolder + @"\"+item.Replace('_', '\\') + ".json";
+                File.WriteAllText(filePath, json);
+            }
+        }
+
+        private void CreateFloderByNodes(string fullPath)
+        {
+        }
+
+        private void RemoveNodeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            TreeNode node = TreeView.SelectedNode;
+            node.Remove();
         }
     }
 }

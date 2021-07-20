@@ -42,3 +42,4 @@ C:\JsonEditor\obj\Debug\JsonEditor.csproj.CoreCompileInputs.cache
 C:\JsonEditor\obj\Debug\JsonEditor.csproj.CopyComplete
 C:\JsonEditor\obj\Debug\JsonEditor.exe
 C:\JsonEditor\obj\Debug\JsonEditor.pdb
+C:\JsonEditor\obj\Debug\JsonEditor.csproj.AssemblyReference.cache
