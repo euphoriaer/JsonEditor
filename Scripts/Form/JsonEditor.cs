@@ -182,12 +182,18 @@ namespace JsonShow
                 parent.Nodes.Add(newNode);
                 //修改字符串，进入下一级
                 int startName = 1;
-                string newFullPath = "";
-                for (int i = startName; i < names.Length; i++)
-                {
-                    newFullPath += names[i] + @"_";
-                }
-                CreateChildNodeByPath(newNode, newFullPath);
+
+               var m= names.ToList();
+                m.RemoveAt(0);
+                string tempFullPath = string.Join("_", m);
+
+                //string newFullPath = "";
+                //for (int i = startName; i < names.Length; i++)
+                //{
+                //    newFullPath += names[i] + @"_";
+                //}
+       
+                CreateChildNodeByPath(newNode, tempFullPath);
             }
         }
 
